@@ -30,6 +30,7 @@ set FILE (basename (status -f))
 
 # === API ====================================================================
 # Sets the given environment variable to the given value
+
 function _appenv_set
 	set NAME  $argv[1]
 	set VALUE $argv[2]
@@ -43,6 +44,18 @@ function _appenv_set
 			set COMMAND "set -gx $NAME $VALUE"
 			eval $COMMAND
 	end
+end
+
+function _appenv_output
+	set OUT (cat $argv[1])
+	set ERR (cat $argv[2])
+	if test -n "$ERR"
+		echo (set_color red)$ERR(set_color normal)
+	else if test -n "$OUT"
+		echo (set_color green)$OUT(set_color normal)
+	end
+	unlink $argv[1]
+	unlink $argv[2]
 end
 
 # === MAIN ====================================================================

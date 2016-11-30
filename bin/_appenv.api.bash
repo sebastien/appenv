@@ -17,9 +17,7 @@ function appenv_declare {
 	NAME=$1
 	VALUE=$2
 	CURRENT=`printenv $1`
-	echo "NAME=$NAME VALUE=$VALUE CURRENT=$CURRENT"
 	if test -z "$VALUE"; then
-		echo VALUE EMPTY $VALUE
 		VALUE="true"
 	fi
 	if [ "$VALUE" != "$CURRENT" ]; then

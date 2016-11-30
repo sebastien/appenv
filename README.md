@@ -118,7 +118,7 @@ Example:
 and then do 
 
 ```
-appenv-load dev
+appenv dev
 ```
 
 to load the `dev.appenv.sh` environment from anywhere on the filesystem.
@@ -131,6 +131,18 @@ Another usage is to create directory-specific environments, in which case
 you would add an `.appenv` file at the root of your project directory and 
 then add `appenv-autoload` to your prompt in order to automatically load
 the `.appenv` when it is in scope.
+
+```shell
+$ cd myproject
+$ cat <<EOT >> .autoenv
+appenv_declare MYPROJECT
+appenv_prepend PATH $MYPROJECT/bin
+appenv_prepend PYTHONPATH $MYPROJECT/lib/python
+EOT
+$ cd myproject ; autoenv
+$ echo $MYPROJECT
+/home/user/myproject
+```
 
 Available commands
 ==================

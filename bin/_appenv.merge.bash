@@ -16,8 +16,11 @@
 #
 source `dirname $0`/_appenv.api.bash
 # === MAIN ====================================================================
+OUTFILE=`mktemp`
+ERRFILE=`mktemp`
 BEFORE=`python -c "import os,sys,json;d=(dict((_,os.environ[_]) for _ in sorted(os.environ)));sys.stdout.write(json.dumps(d))"`
-. $1 > /dev/null
+. $1 1>> $OUTFILE 2>> $ERRFILE
 AFTER=`echo $BEFORE | python -c "import json,sys,os;b=json.loads(sys.stdin.read());d=dict((_,os.environ[_]) for _ in os.environ if b.get(_)!=os.environ[_]);[sys.stdout.write('_appenv_set \"{0}\" \"{1}\";'.format(v,k)) for v,k in d.items()]"`
 echo $AFTER
+echo _appenv_output $OUTFILE $ERRFILE
 # EOF
