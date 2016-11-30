@@ -1,10 +1,28 @@
-appenv ― Per-application shell environments
+appenv ― per-application shell environments
 ===========================================
 
+```
+                __     _____   _____      __    ___   __  __
+              /'__`\  /\ '__`\/\ '__`\  /'__`\/' _ `\/\ \/\ \
+             /\ \L\.\_\ \ \L\ \ \ \L\ \/\  __//\ \/\ \ \ \_/ |
+             \ \__/.\_\\ \ ,__/\ \ ,__/\ \____\ \_\ \_\ \___/
+              \/__/\/_/ \ \ \/  \ \ \/  \/____/\/_/\/_/\/__/
+                         \ \_\   \ \_\
+                          \/_/    \/_/
+```
+
 *appenv* is a shell utility supporting *bash*, *zsh*, *fish* and *xonsh* that allows you
-to update your shell environment on per-application basis. It is similar in functionality
-to tools such as `autoenv` or `direnv`, the main difference being that `appenv` is
+to update your shell environment on a per-application basis. It is similar in functionality
+to tools such as [`autoenv`](https://github.com/kennethreitz/autoenv) or [`direnv`](http://direnv.net/), the main difference being that `appenv` is
 more portable (and has a slightly different feature set).
+
+```
+$ mkdir dir ; echo "export PATH=`pwd`/dir" > dir/.appenv
+$ cd dir
+$ appenv
+$ echo $PATH
+/home/use/dir
+```
 
 *appenv* scripts should be written in *bash*, and do not have any specific requirement
 besides updating environment variables.
@@ -20,10 +38,9 @@ if test -z $APP_EXAMPLE; then
 fi
 ```
 
-or using the API functions:
+or using the *appenv* [shell API](#API) functions:
 
 ```shell
-#!/usr/bin/bash
 appenv_declare APP_EXAMPLE $HOME/.local/share/example
 appenv_prepend PATH        $APP_EXAMPLE/bin
 appenv_prepend MANPATH     $APP_EXAMPLE/share/man
@@ -32,16 +49,18 @@ appenv_prepend MANPATH     $APP_EXAMPLE/share/man
 Installing
 ==========
 
-*appenv* requires *bash* and *python3* to run, both of these commands are
-likely already available.
+Download
+--------
 
-To automatically install *autoenv* from github, do the following:
+*appenv* requires *bash* and *python* to run, both of these
+commands are likely already available. To automatically install *appenv* from
+github, do the following:
 
 ```
 curl https://raw.githubusercontent.com/sebastien/appenv/install.sh | bash
 ```
 
-this will install `.autoenv` in `~/.local/bin`, you can also specify an
+this will install the *appenv* scripts under `~/.local/bin`, you can also specify an
 alternative location by setting the `APPENV_HOME` variable before
 running the install script.
 
@@ -50,11 +69,86 @@ curl https://raw.githubusercontent.com/sebastien/appenv/install.sh\
 | export APPENV_HOME=~/local && bash
 ```
 
-This will install the `appenv-{run,load,unload,export}` commands, which
-will automatically detect your shell and setup the appropriate functions.
+Shell configuration
+-------------------
+
+To load these commands from your shell, do the following in **bash**:
+
+```shell
+source ~/.local/bin/_appenv.bash
+```
+
+in **zsh**:
+
+```shell
+source ~/.local/bin/_appenv.zsh
+```
+
+in **fish**:
+
+```shell
+. ~/local/bin/_appenv.fish
+```
+
+in **xonsh**:
+
+```shell
+. ~/local/bin/_appenv.xonsh
+```
+
+Usage
+=====
+
+System-wide environments
+------------------------
+
+The typical usage would be to create an `~/.appenv` directory and populate
+it with `*.appenv.sh` files, one for each application environment that you would
+like to be available.
+
+Example:
+
+```
+/home/user/.appenv/
+├── prod.appenv.sh
+├── staging.appenv.sh
+└── dev.appenv.sh
+```
+
+and then do 
+
+```
+appenv-load dev
+```
+
+to load the `dev.appenv.sh` environment from anywhere on the filesystem.
+
+
+Directory-specific environments
+-------------------------------
+
+Another usage is to create directory-specific environments, in which case
+you would add an `.appenv` file at the root of your project directory and 
+then add `appenv-autoload` to your prompt in order to automatically load
+the `.appenv` when it is in scope.
 
 Available commands
 ==================
+
+Once loaded in you shell, *appenv* offers the following commands:
+
+- `appenv(-autoload) DIR?`
+
+	automatically loads the `.appenv` file or the `.append/*.appenv.sh` files
+	in the current (or given) directory, making sure the same environment is not
+	loaded twice.
+
+	*Tip: execute `appenv(-autoload)` in your prompt to automatically
+	load an environment on directory change.*
+
+- `appenv-list DIR?`
+
+	lists the *appenv* scripts available in the current (or given) directory.
 
 - `appenv-load FILE‥|NAME‥`
 
@@ -76,10 +170,16 @@ Available commands
 	imports an environment saved from a previous export, if
 	not *FILE* is given, will load the directives from *stdin*.
 
-Shell API
-=========
+- `appenv-capture command`
+	
+	captures the changes made to the environment of the given command,
+	returning the update script in the same format as `appenv-export`.
 
-Application environment scripts (`.appenv.sh`) have the following API already available:
+<a name="api">Shell API
+=======================
+
+Application environment scripts (`*.appenv.sh`) have the following API already available,
+defined in [_appenv.api.bash](bin/_appenv.api.bash):
 
 - **appenv_declare** *NAME* *VALUE?*
 
