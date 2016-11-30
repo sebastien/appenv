@@ -1,5 +1,5 @@
-appenv ― per-application shell environments
-===========================================
+appenv ― per-application & per-directory shell environments
+===========================================================
 
 ```
                 __     _____   _____      __    ___   __  __
@@ -56,7 +56,7 @@ Download
 commands are likely already available. To automatically install *appenv* from
 github, do the following:
 
-```
+```shell
 curl https://raw.githubusercontent.com/sebastien/appenv/install.sh | bash
 ```
 
@@ -64,7 +64,7 @@ this will install the *appenv* scripts under `~/.local/bin`, you can also specif
 alternative location by setting the `APPENV_HOME` variable before
 running the install script.
 
-```
+```shell
 curl https://raw.githubusercontent.com/sebastien/appenv/install.sh\
 | export APPENV_HOME=~/local && bash
 ```
