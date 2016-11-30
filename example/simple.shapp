@@ -1,7 +1,0 @@
-#!/usr/bin/bash
-if test -z $APP_EXAMPLE; then
-	export APP_EXAMPLE=true
-	export APP_EXAMPLE_HOME=~/Example
-	export PATH=$APP_EXAMPLE_HOME/bin:$PATH
-fi
-#EOF
