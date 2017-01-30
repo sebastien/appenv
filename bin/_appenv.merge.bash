@@ -10,17 +10,44 @@
 # 
 # -----------------------------------------------------------------------------
 # _appenv.merge.bash -- executes the given shell script and echoes a list of
-# commands to be evaluated by the calling shell to update its environment.
+# appenv API commands to be evaluated by the calling shell
+# to update its environment.
 #
-# Usage: ./_appenv.merge.bash <FILE>.appenv.sh
-#
-source `dirname $0`/_appenv.api.bash
+# Usage: ./_appenv.merge.bash <FILE>.appenv.sh?
+
+# We source appenv's bash API if not already there
+# if [ -z $APPENV_API ]; then
+# 	source `dirname ${BASH_SOURCE[0]}`/_appenv.api.bash
+# fi
+source `dirname ${BASH_SOURCE[0]}`/_appenv.api.bash
+
 # === MAIN ====================================================================
 OUTFILE=`mktemp`
 ERRFILE=`mktemp`
-BEFORE=`python -c "import os,sys,json;d=(dict((_,os.environ[_]) for _ in sorted(os.environ)));sys.stdout.write(json.dumps(d))"`
-. $1 1>> $OUTFILE 2>> $ERRFILE
-AFTER=`echo $BEFORE | python -c "import json,sys,os;b=json.loads(sys.stdin.read());d=dict((_,os.environ[_]) for _ in os.environ if b.get(_)!=os.environ[_]);[sys.stdout.write('_appenv_set \"{0}\" \"{1}\";'.format(v,k)) for v,k in d.items()]"`
+
+# We capture the current environment
+BEFORE=`_appenv_capture`
+
+if [ -z $1 ]; then
+	cat /dev/stdin
+	# When called with no argument, we eval stdin 
+	# eval `cat /dev/stdin` 1>> $OUTFILE 2>> $ERRFILE
+else
+	# When called with an argument, we interpret the first one
+	# FIXME: Warn about other arguments being ignored.
+	FILE=`readlink -f $1`
+	appenv_append APPENV_LOADED `readlink -f $1`
+	# We execute the appenv script, capturing both output and error
+	. $1 1>> $OUTFILE 2>> $ERRFILE
+fi
+
+# We get the diff with BEFORE
+AFTER=`_appenv_diff "$BEFORE"`
+
+# Output the difference
 echo $AFTER
+
+# And output any error message that we might have found
 echo _appenv_output $OUTFILE $ERRFILE
+
 # EOF

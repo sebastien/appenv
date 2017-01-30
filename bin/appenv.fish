@@ -28,8 +28,15 @@ end
 set BASE (dirname  (status -f))
 set FILE (basename (status -f))
 
-# === API ====================================================================
-# Sets the given environment variable to the given value
+# === OVERRIDES ===============================================================
+
+function _appenv_api
+	bash $BASE/_appenv.run.bash $argv
+end
+
+function _appenv_output
+	_appenv_api output $argv
+end
 
 function _appenv_set
 	set NAME  $argv[1]
@@ -46,44 +53,70 @@ function _appenv_set
 	end
 end
 
-function _appenv_output
-	set OUT (cat $argv[1])
-	set ERR (cat $argv[2])
-	if test -n "$ERR"
-		echo (set_color red)$ERR(set_color normal)
-	else if test -n "$OUT"
-		echo (set_color green)$OUT(set_color normal)
-	end
-	unlink $argv[1]
-	unlink $argv[2]
+
+# === WRAPPERS ================================================================
+
+function appenv-locate
+	_appenv_api locate $argv
+end
+
+function appenv-list
+	_appenv_api list $argv
+end
+
+function appenv-loaded
+	_appenv_api loaded $argv
+end
+
+function appenv-name
+	_appenv_api name $argv
+end
+
+function appenv-declares
+	_appenv_api declares $argv
 end
 
 # === MAIN ====================================================================
 
-function appenv-load
-	# Runs the given Bash command and merges-in the changes to the environment.
+function appenv-import
 	if test -z $argv[1]
-		echo Usage: appenv-load '<FILE>.appenv.sh'
+		set SCRIPT (cat /dev/stdin | bash $BASE/_appenv.merge.bash)
 	else
-		for file in $argv
-			# echo "appenv-load: loading" $file
-			set SCRIPT (bash $BASE/_appenv.merge.bash $file)
-			eval $SCRIPT
+		set SCRIPT (bash $BASE/_appenv.merge.bash $argv[1])
+	end
+	eval $SCRIPT
+end
+
+function appenv-load
+	set NAME (appenv-locate $argv[1])
+	if test -n $NAME
+		if test -f $NAME
+			appenv-import $NAME
+		else if test -d $NAME
+			for SUBNAME in $NAME/*.appenv.sh
+				appenv-import $NAME
+			end
+		else
+			_appenv_api error "Cannot find appenv file " $NAME
 		end
 	end
 end
 
 function appenv-autoload
-	if test -z $path
-		set path .appenv
-	end
-	if test -d $path
-		appenv-autoload .appenv/*.appenv.sh
-	else if test -e $path
-		set path (readlink -e $path)
-		echo "appenv: autoload" (set_color blue)(basename (dirname $path))/(basename $path) (set_color normal)
-		set -gx APPENV_FILE $path
-		appenv-load $path
+	for FILE in appenv-list .
+		_appenv_api log "⛀ " (appenv-name $FILE) "→" (basename (dirname $FILE))/(basename $FILE)
+		appenv-load $FILE
 	end
 end
+
+function appenv
+	if test -z $argv
+		appenv-autoload
+	else
+		for NAME in $argv
+			appenv-load $NAME
+		end
+	end
+end
+
 # EOF

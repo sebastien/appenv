@@ -121,7 +121,18 @@ and then do
 appenv dev
 ```
 
-to load the `dev.appenv.sh` environment from anywhere on the filesystem.
+to load the `~/.append/dev.appenv.sh` environment from anywhere on the filesystem.
+
+It is also possible to prefix appenv script names with `auto-NNN` where *NNN*
+are digits. This features allows you to make the difference between scripts
+you can load on demand and those loaded automatically.
+
+```
+appenv-load ~/.appenv/auto-*.appenv.sh
+```
+
+The `appenv-load` command will be able to resolve `auto-000-name.appenv.sh` 
+from just the `name`.
 
 
 Directory-specific environments
@@ -172,6 +183,10 @@ Once loaded in you shell, *appenv* offers the following commands:
 	unloads a preset environment, reverting the changes
 	made by `appenv-load`.
 
+- `appenv-loaded`
+
+	lists the loaded appenv environments
+
 - `appenv-export`
 	
 	exports the current environment as a script that can be loaded
@@ -193,20 +208,20 @@ Once loaded in you shell, *appenv* offers the following commands:
 Application environment scripts (`*.appenv.sh`) have the following API already available,
 defined in [_appenv.api.bash](bin/_appenv.api.bash):
 
-- **appenv_declare** *NAME* *VALUE?*
+- **_appenv_declare** *NAME* *VALUE?*
 
 	exits the script if the environment variable *NAME* is defined (and
 	equal to *VALUE* if specified), effectively guarding the execution of
 	the rest of the script if the variable has already been defined. 
 
 	```shell
-	appenv_declare APP_EXAMPLE
-	# The following code will only be executed if `APP_EXAMPLE` is not defined.
-	# The `APP_EXAMPLE` variable will be set to `true` by default.
+	appenv_declare MYAPP
+	# The following code will only be executed if MYAPP` is not defined.
+	# The `MYAPP` variable will be set to `true` by default.
 	‥
 	```
 
-- **appenv_append** *NAME* *VALUE*
+- **_appenv_append** *NAME* *VALUE*
 
 	adds the given *VALUE* at the end of the given environment
 	variable with the given *NAME*, ensuring that *VALUE* does not occurs twice.
@@ -215,7 +230,7 @@ defined in [_appenv.api.bash](bin/_appenv.api.bash):
 	appenv_append PATH ~/.local/share/example/bin
 	```
 
-- **appenv_prepend** *NAME* *VALUE*
+- **_appenv_prepend** *NAME* *VALUE*
 
 	adds the given *VALUE* at the beginning of the given environment
 	variable with the given *NAME*, ensuring that *VALUE* does not occurs twice.
@@ -224,7 +239,7 @@ defined in [_appenv.api.bash](bin/_appenv.api.bash):
 	appenv_append PATH ~/.local/share/example/bin
 	```
 
-- **appenv_remove** *NAME* *VALUE*
+- **_appenv_remove** *NAME* *VALUE*
 
 	removes the given `VALUE` from the given environment variable.
 
@@ -232,7 +247,7 @@ defined in [_appenv.api.bash](bin/_appenv.api.bash):
 	appenv_remove PATH ~/.local/share/example/bin
 	```
 
-- **appenv_set** *NAME* *VALUE*
+- **_appenv_set** *NAME* *VALUE*
 
 	sets the given environment variable to the given `VALUE`
 
@@ -240,13 +255,19 @@ defined in [_appenv.api.bash](bin/_appenv.api.bash):
 	appenv_set APP_EXAMPLE_HOME ~/.local/share/example
 	```
 
-- **appenv_clear** *NAME*
+- **_appenv_clear** *NAME*
 
 	unsets the given environment variable
 
 	```
 	appenv_clear APP_EXAMPLE_HOME
 	```
+
+Appenv also defines environment variables:
+
+- **APPENV_LOADED**
+
+	The list of scripts current loaded in the environment.
 
 
 These API calls (implemented as Bash functions) are not required, but
