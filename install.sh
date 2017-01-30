@@ -4,10 +4,10 @@ FILES="bin/appenv.bash bin/appenv.fish lib/appenv/api.bash lib/appenv/commands.b
 BASE="https://raw.githubusercontent.com/sebastien/appenv"
 if [ "$1" = "uninstall" ]; then
 	for FILE in $FILES; do
-		FILE=$PREFIX/bin/$FILE
+		FILE=$PREFIX/$FILE
 		if [ -e $FILE ]; then
 			echo Removing $FILE
-			#unlink $FILE
+			unlink $FILE
 		fi
 	done
 else
@@ -24,7 +24,7 @@ else
 		fi
 		curl $SRC > $DST
 	done
-	 chmod +x $BASE/bin/appenv.bash
-	# chmod +x $BASE/bin/appenv.fish
+	chmod +x $PREFIX/bin/appenv.bash
+	chmod +x $PREFIX/bin/appenv.fish
 fi
 # EOF
