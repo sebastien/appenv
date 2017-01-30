@@ -11,7 +11,7 @@
 # -----------------------------------------------------------------------------
 
 BASE=`readlink -f \`dirname ${BASH_SOURCE[0]}\``
-source $BASE/_appenv.command.bash
+source $BASE/commands.bash
 eval "_appenv_$@"
 
 # EOF

@@ -19,7 +19,7 @@
 # if [ -z $APPENV_API ]; then
 # 	source `dirname ${BASH_SOURCE[0]}`/_appenv.api.bash
 # fi
-source `dirname ${BASH_SOURCE[0]}`/_appenv.api.bash
+source `dirname ${BASH_SOURCE[0]}`/api.bash
 
 # === MAIN ====================================================================
 OUTFILE=`mktemp`
@@ -29,13 +29,14 @@ ERRFILE=`mktemp`
 BEFORE=`_appenv_capture`
 
 if [ -z $1 ]; then
-	cat /dev/stdin
+	APPENV_FILE=/dev/stdin
 	# When called with no argument, we eval stdin 
-	# eval `cat /dev/stdin` 1>> $OUTFILE 2>> $ERRFILE
+	eval `cat /dev/stdin` 1>> $OUTFILE 2>> $ERRFILE
 else
 	# When called with an argument, we interpret the first one
 	# FIXME: Warn about other arguments being ignored.
 	FILE=`readlink -f $1`
+	APPENV_FILE=$FILE
 	appenv_append APPENV_LOADED `readlink -f $1`
 	# We execute the appenv script, capturing both output and error
 	. $1 1>> $OUTFILE 2>> $ERRFILE

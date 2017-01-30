@@ -11,7 +11,7 @@ appenv ― per-application & per-directory shell environments
                           \/_/    \/_/
 ```
 
-*appenv* is a shell utility supporting *bash*, *zsh*, *fish* and *xonsh* that allows you
+*appenv* is a shell utility supporting *bash* and *fish* that allows you
 to update your shell environment on a per-application basis. It is similar in functionality
 to tools such as [`autoenv`](https://github.com/kennethreitz/autoenv) or [`direnv`](http://direnv.net/), the main difference being that `appenv` is
 more portable (and has a slightly different feature set).
@@ -41,9 +41,11 @@ fi
 or using the *appenv* [shell API](#API) functions:
 
 ```shell
+appenv_name    example
 appenv_declare APP_EXAMPLE $HOME/.local/share/example
 appenv_prepend PATH        $APP_EXAMPLE/bin
 appenv_prepend MANPATH     $APP_EXAMPLE/share/man
+appenv_log     "Example environment loaded at $APP_EXAMPLE"
 ```
 
 Installing
@@ -75,26 +77,15 @@ Shell configuration
 To load these commands from your shell, do the following in **bash**:
 
 ```shell
-source ~/.local/bin/_appenv.bash
-```
-
-in **zsh**:
-
-```shell
-source ~/.local/bin/_appenv.zsh
+source ~/.local/bin/appenv.bash
 ```
 
 in **fish**:
 
 ```shell
-. ~/local/bin/_appenv.fish
+. ~/.local/bin/appenv.fish
 ```
 
-in **xonsh**:
-
-```shell
-. ~/local/bin/_appenv.xonsh
-```
 
 Usage
 =====
@@ -160,6 +151,11 @@ Available commands
 
 Once loaded in you shell, *appenv* offers the following commands:
 
+- `appenv-list DIR?`
+
+	lists the *appenv* scripts available in the current (or given) directory and
+	all its ancestors.
+
 - `appenv(-autoload) DIR?`
 
 	automatically loads the `.appenv` file or the `.append/*.appenv.sh` files
@@ -168,10 +164,6 @@ Once loaded in you shell, *appenv* offers the following commands:
 
 	*Tip: execute `appenv(-autoload)` in your prompt to automatically
 	load an environment on directory change.*
-
-- `appenv-list DIR?`
-
-	lists the *appenv* scripts available in the current (or given) directory.
 
 - `appenv-load FILE‥|NAME‥`
 
@@ -267,8 +259,15 @@ Appenv also defines environment variables:
 
 - **APPENV_LOADED**
 
-	The list of scripts current loaded in the environment.
+	The list of scripts (by path) current loaded in the environment, separated by colons ':'
 
+- **APPENV_STATUS**
+
+	The list of scripts (by name0 with an `appenv_name` directive, currently loaded in the environment, separated by colons ':'
+
+- **APPENV_FILE**
+
+	The normalzied path to the appenv file currently being loaded.
 
 These API calls (implemented as Bash functions) are not required, but
 are offered to have cleaner more consistent API in writing the env files. You

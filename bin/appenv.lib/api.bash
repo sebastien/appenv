@@ -18,7 +18,7 @@
 APPENV_API="0.0.0"
 
 BASE=`readlink -f \`dirname ${BASH_SOURCE[0]}\``
-source $BASE/_appenv.command.bash
+source $BASE/commands.bash
 
 # -----------------------------------------------------------------------------
 #
@@ -90,6 +90,10 @@ function appenv_log {
 
 function appenv_error {
 	>&2 echo -e "${@}"
+}
+
+function appenv_name {
+	appenv_append APPENV_STATUS $1
 }
 
 # EOF

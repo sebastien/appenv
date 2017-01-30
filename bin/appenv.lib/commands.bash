@@ -80,30 +80,27 @@ function _appenv_output {
 #
 # -----------------------------------------------------------------------------
 
-
-# {{{
-# Finds the *appenv* script file with the given name.
-# }}}
 function _appenv_locate {
 	local APP
 	local NAME=$1
 	if [ -z $NAME ]; then
 		if [ -e .appenv ]; then
-			echo ".appenv"
+			readlink -f .appenv
 		else
 			_appenv_error "Cannot locate default .appenv file"
 		fi
-	elif [ -e $NAME ]; then
-		echo $NAME
+	elif [ -f $NAME ]; then
+		readlink -f $NAME
+	elif [ -d $NAME -a -e $NAME/.appenv ]; then
+		readlink -f $NAME/.appenv
 	else
 		local FOUND=false
 		for APP in `_appenv_list`; do
-			if [ `_appenv-name $APP` == $NAME ]; then
-				echo $APP
+			if [ `_appenv_name $APP` == $NAME ]; then
+				readlink -f $APP
 				FOUND=true
 			fi
 		done
-		echo "FOUND $FOUND"
 		if [ $FOUND == "false" ]; then
 			_appenv_error "Cannot locate appenv file: $NAME"
 		fi
@@ -120,11 +117,11 @@ function _appenv_list {
 	if [ -d $DIR/.appenv ]; then
 		for APP in $DIR/.appenv/*.appenv.sh; do
 			if [ -e $APP ]; then
-				echo $APP
+				readlink -f $APP
 			fi
 		done
 	elif [ -f $DIR/.appenv ]; then
-		echo $DIR/.appenv
+		readlink -f $DIR/.appenv
 	fi
 	if [ -n $PARENT -a $PARENT != "/" ]; then
 		_appenv_list $PARENT
@@ -132,13 +129,24 @@ function _appenv_list {
 }
 
 function _appenv_name {
-	echo $1 | sed -E "s/(.*\/)?(auto\-[0-9]+\-)?(.*)\.appenv\.sh/\3/"
+	local FILE=`_appenv_locate $1`
+	local NAME
+	if [ -e $FILE ]; then
+		NAME=`cat $FILE | grep appenv_name | awk '{print $2}'`
+	fi
+	if [ -z $NAME ]; then
+		if [ -z FILE ]; then
+			FILE=$1
+		fi
+		NAME=`echo $FILE | sed -E "s/(.*\/)?(auto\-[0-9]+\-)?(.*)\.appenv\.sh/\3/"`
+	fi
+	echo $NAME
 }
 
 function _appenv_declares {
 	local NAME
 	if [ -f $1 ]; then
-		for NAME in `cat $1 | grep _appenv_declare | awk '{print $2}'`; do
+		for NAME in `cat $1 | grep appenv_declare | awk '{print $2}'`; do
 			if [ -z $NAME ]; then
 				NAMES=`basename $1 | cut -d. -f1`
 			fi
@@ -156,6 +164,7 @@ function _appenv_unload {
 
 function _appenv_loaded {
 	local APP
+	# FIXME: This does not seem to work
 	for APP in ${APPENV_LOADED//:/}; do
 		echo "$APP"
 	done

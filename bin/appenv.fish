@@ -30,12 +30,12 @@ set FILE (basename (status -f))
 
 # === OVERRIDES ===============================================================
 
-function _appenv_api
-	bash $BASE/_appenv.run.bash $argv
+function _appenv_run
+	bash $BASE/appenv.lib/run.bash $argv
 end
 
 function _appenv_output
-	_appenv_api output $argv
+	_appenv_run output $argv
 end
 
 function _appenv_set
@@ -57,54 +57,51 @@ end
 # === WRAPPERS ================================================================
 
 function appenv-locate
-	_appenv_api locate $argv
+	_appenv_run locate $argv
 end
 
 function appenv-list
-	_appenv_api list $argv
+	_appenv_run list $argv
 end
 
 function appenv-loaded
-	_appenv_api loaded $argv
+	_appenv_run loaded $argv
 end
 
 function appenv-name
-	_appenv_api name $argv
+	_appenv_run name $argv
 end
 
 function appenv-declares
-	_appenv_api declares $argv
+	_appenv_run declares $argv
 end
 
 # === MAIN ====================================================================
 
 function appenv-import
 	if test -z $argv[1]
-		set SCRIPT (cat /dev/stdin | bash $BASE/_appenv.merge.bash)
+		set -gx APPENV_FILE /dev/stdin
+		set SCRIPT (cat /dev/stdin | bash $BASE/appenv.lib/merge.bash)
 	else
-		set SCRIPT (bash $BASE/_appenv.merge.bash $argv[1])
+		set -gx APPENV_FILE $argv[1]
+		set SCRIPT (bash $BASE/appenv.lib/merge.bash $argv[1])
 	end
 	eval $SCRIPT
 end
 
 function appenv-load
-	set NAME (appenv-locate $argv[1])
-	if test -n $NAME
-		if test -f $NAME
-			appenv-import $NAME
-		else if test -d $NAME
-			for SUBNAME in $NAME/*.appenv.sh
-				appenv-import $NAME
-			end
-		else
-			_appenv_api error "Cannot find appenv file " $NAME
-		end
+	set NAME (_appenv_run locate $argv[1])
+	if test -e $NAME
+		appenv-import $NAME
+	else
+		_appenv_run error "Cannot find appenv file $argv[1]"
 	end
 end
 
 function appenv-autoload
-	for FILE in appenv-list .
-		_appenv_api log "⛀ " (appenv-name $FILE) "→" (basename (dirname $FILE))/(basename $FILE)
+	set FILE (appenv-list . | head -n1)
+	if test -e $FILE
+		_appenv_run log "⛀ " (appenv-name $FILE) "→" (basename (dirname $FILE))/(basename $FILE)
 		appenv-load $FILE
 	end
 end
