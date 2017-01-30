@@ -31,7 +31,7 @@ set FILE (basename (status -f))
 # === OVERRIDES ===============================================================
 
 function _appenv_run
-	bash $BASE/appenv.lib/run.bash $argv
+	bash $BASE/../lib/appenv/run.bash $argv
 end
 
 function _appenv_output
@@ -81,10 +81,10 @@ end
 function appenv-import
 	if test -z $argv[1]
 		set -gx APPENV_FILE /dev/stdin
-		set SCRIPT (cat /dev/stdin | bash $BASE/appenv.lib/merge.bash)
+		set SCRIPT (cat /dev/stdin | bash $BASE/../lib/appenv/merge.bash)
 	else
 		set -gx APPENV_FILE $argv[1]
-		set SCRIPT (bash $BASE/appenv.lib/merge.bash $argv[1])
+		set SCRIPT (bash $BASE/../lib/appenv/merge.bash $argv[1])
 	end
 	eval $SCRIPT
 end

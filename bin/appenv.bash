@@ -27,7 +27,7 @@ BASE=`readlink -f \`dirname ${BASH_SOURCE[0]}\``
 # === API =====================================================================
 # Sets the given environment variable to the given value
 
-source $BASE/appenv.lib/commands.bash
+source $BASE/../lib/appenv/commands.bash
 
 # === OVERRIDES ===============================================================
 
@@ -66,9 +66,9 @@ function appenv-import {
 	# NOTE: We need to call `appenv_import` directly so as to not create
 	# a sub-shell
 	if [ -z $1 ]; then
-		SCRIPT=`cat /dev/stdin | $BASE/appenv.lib/merge.bash`
+		SCRIPT=`cat /dev/stdin | $BASE/../lib/appenv/merge.bash`
 	else
-		SCRIPT=`. $BASE/appenv.lib/merge.bash $1`
+		SCRIPT=`. $BASE/../lib/appenv/merge.bash $1`
 	fi
 	eval "${SCRIPT}"
 }
