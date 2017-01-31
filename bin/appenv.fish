@@ -90,11 +90,13 @@ function appenv-import
 end
 
 function appenv-load
-	set NAME (_appenv_run locate $argv[1])
-	if test -e $NAME
-		appenv-import $NAME
-	else
-		_appenv_run error "Cannot find appenv file $argv[1]"
+	for FILE in $argv
+		set NAME (_appenv_run locate $FILE)
+		if test -e $NAME
+			appenv-import $NAME
+		else
+			_appenv_run error "Cannot find appenv file $argv[1]"
+		end
 	end
 end
 

@@ -1,7 +1,6 @@
 #!/usr/bin/bash
-if test -z $APP_EXAMPLE; then
-	export APP_EXAMPLE=$HOME/.local/share/example
-	export PATH=$APP_EXAMPLE/bin:$PATH
-	export MANPATH=$APP_EXAMPLE/share/man:$MANPATH
-fi
+appenv_name    userlocal
+appenv_prepend PATH ~/local/bin
+appenv_prepend MANPATH ~/local/share/man
+appenv_log Local environment loaded
 #EOF
