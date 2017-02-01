@@ -12,9 +12,15 @@ appenv ― per-application & per-directory shell environments
 ```
 
 *appenv* is a shell utility supporting *bash* and *fish* that allows you
-to update your shell environment on a per-application basis. It is similar in functionality
-to tools such as [`autoenv`](https://github.com/kennethreitz/autoenv) or [`direnv`](http://direnv.net/), the main difference being that `appenv` is
-more portable (and has a slightly different feature set).
+to update your shell environment on a per-application basis. It is similar in spirit
+to tools such as [`autoenv`](https://github.com/kennethreitz/autoenv) or [`direnv`](http://direnv.net/), and offers
+the following features:
+
+- supports per-user (`~/.appenv/`) and per-directory (`.appenv`) environments
+- init-style auto-loading of `~/.appenv/auto-NNN-*.appenv.sh` files
+- easily portable to other shells (zsh, tcsh, xonsh, etc)
+- nice API to set/append/prepend values to environment variables
+
 
 ```
 $ mkdir dir ; echo "export PATH=`pwd`/dir" > dir/.appenv
@@ -167,40 +173,48 @@ Once loaded in you shell, *appenv* offers the following commands:
 
 - `appenv-load FILE‥|NAME‥`
 
-	loads the application environemnt scripts(s) identified by the given
+	loads the application environment scripts(s) identified by the given
 	*NAME* (resolved in `~/.appenv/<NAME>.appenv.sh`) or *FILE*.
 
-- `appenv-unload FILE‥|NAME‥`
+- ~~`appenv-unload FILE‥|NAME‥`~~
 
 	unloads a preset environment, reverting the changes
-	made by `appenv-load`.
+	made by `appenv-load`. **Not implemented yet**
 
 - `appenv-loaded`
 
-	lists the loaded appenv environments
+	lists the currently loaded **appenv** environments. These are also
+	stored in `$APPENV_LOADED`
 
-- `appenv-export`
+- ~~`appenv-export`~~
 	
 	exports the current environment as a script that can be loaded
 	to restore the environment to what it was.
+	
+	*Not implemented yet*
 
-- `appenv-import FILE?` 
+- ~~`appenv-import FILE?`~~
 
 	imports an environment saved from a previous export, if
 	not *FILE* is given, will load the directives from *stdin*.
 
-- `appenv-capture command`
+	*Not implemented yet*
+
+
+- ~~`appenv-capture command`~~
 	
 	captures the changes made to the environment of the given command,
 	returning the update script in the same format as `appenv-export`.
 
-<a name="api">Shell API
-=======================
+	*Not implemented yet*
+
+<a name="api">Environment scripts API
+=====================================
 
 Application environment scripts (`*.appenv.sh`) have the following API already available,
-defined in [_appenv.api.bash](bin/_appenv.api.bash):
+defined in [share/appenv/api.bash](share/appenv/api.bash):
 
-- **_appenv_declare** *NAME* *VALUE?*
+- **appenv_declare** *NAME* *VALUE?*
 
 	exits the script if the environment variable *NAME* is defined (and
 	equal to *VALUE* if specified), effectively guarding the execution of
@@ -213,7 +227,16 @@ defined in [_appenv.api.bash](bin/_appenv.api.bash):
 	‥
 	```
 
-- **_appenv_append** *NAME* *VALUE*
+- **appenv_name** *NAME* 
+
+	sets a name for the init script that will be appended to 
+	the `APPENV_STATUS` variable.
+
+	*Tip: add `$APPENV_STATUS` to your right prompt and show which
+	named environment are currenlty loaded.*
+
+
+- **appenv_append** *NAME* *VALUE*
 
 	adds the given *VALUE* at the end of the given environment
 	variable with the given *NAME*, ensuring that *VALUE* does not occurs twice.
@@ -222,16 +245,16 @@ defined in [_appenv.api.bash](bin/_appenv.api.bash):
 	appenv_append PATH ~/.local/share/example/bin
 	```
 
-- **_appenv_prepend** *NAME* *VALUE*
+- **appenv_prepend** *NAME* *VALUE*
 
 	adds the given *VALUE* at the beginning of the given environment
 	variable with the given *NAME*, ensuring that *VALUE* does not occurs twice.
 
 	```shell
-	appenv_append PATH ~/.local/share/example/bin
+	appenv_prepend PATH ~/.local/share/example/bin
 	```
 
-- **_appenv_remove** *NAME* *VALUE*
+- **appenv_remove** *NAME* *VALUE*
 
 	removes the given `VALUE` from the given environment variable.
 
@@ -239,7 +262,7 @@ defined in [_appenv.api.bash](bin/_appenv.api.bash):
 	appenv_remove PATH ~/.local/share/example/bin
 	```
 
-- **_appenv_set** *NAME* *VALUE*
+- **appenv_set** *NAME* *VALUE*
 
 	sets the given environment variable to the given `VALUE`
 
@@ -247,7 +270,7 @@ defined in [_appenv.api.bash](bin/_appenv.api.bash):
 	appenv_set APP_EXAMPLE_HOME ~/.local/share/example
 	```
 
-- **_appenv_clear** *NAME*
+- **appenv_clear** *NAME*
 
 	unsets the given environment variable
 
@@ -255,22 +278,18 @@ defined in [_appenv.api.bash](bin/_appenv.api.bash):
 	appenv_clear APP_EXAMPLE_HOME
 	```
 
-Appenv also defines environment variables:
+*appenv* also manages the following environment variables:
 
 - **APPENV_LOADED**
 
-	The list of scripts (by path) current loaded in the environment, separated by colons ':'
+	The list of loadded scripts (by path), by colons ':'
 
 - **APPENV_STATUS**
 
-	The list of scripts (by name0 with an `appenv_name` directive, currently loaded in the environment, separated by colons ':'
+	The list of loaded named scripts (by name) separated by colons ':'
 
 - **APPENV_FILE**
 
-	The normalzied path to the appenv file currently being loaded.
-
-These API calls (implemented as Bash functions) are not required, but
-are offered to have cleaner more consistent API in writing the env files. You
-can find the implementation of these files in the [`_appenv.api.bash`](bin/_appenv.api.bash) 
-source.
+	The normalized path to the appenv file currently being loaded. This is
+	only available from within `*.appenv.sh` files.
 
