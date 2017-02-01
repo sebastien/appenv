@@ -186,6 +186,12 @@ Once loaded in you shell, *appenv* offers the following commands:
 	lists the currently loaded **appenv** environments. These are also
 	stored in `$APPENV_LOADED`
 
+- `appenv-locate NAME`
+
+	locates an environment file from `appenv-list` that is like
+	`NAME.appenv.sh`, `auto-*-NAME.appenv.sh` or has a `appenv_name`
+	declaration with the given `NAME`.
+
 - ~~`appenv-export`~~
 	
 	exports the current environment as a script that can be loaded

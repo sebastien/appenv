@@ -23,7 +23,8 @@ GREEN_BOLD='\033[01;32m'
 YELLOW='\033[00;33m'
 YELLOW_BOLD='\033[01;33m'
 
-NC='\033[0m' # No Color
+NORMAL='\033[0m' # No Color
+NC="$NORMAL"
 
 # === PATHS ==================================================================
 
@@ -85,19 +86,21 @@ function _appenv_locate {
 	local NAME=$1
 	if [ -z $NAME ]; then
 		if [ -e .appenv ]; then
-			readlink -f .appenv
+			echo .appenv
 		else
 			_appenv_error "Cannot locate default .appenv file"
 		fi
 	elif [ -f $NAME ]; then
-		readlink -f $NAME
+		echo $NAME
 	elif [ -d $NAME -a -e $NAME/.appenv ]; then
-		readlink -f $NAME/.appenv
+		echo $NAME/.appenv
+	elif [ -L $NAME ]; then
+		echo $NAME
 	else
 		local FOUND=false
 		for APP in `_appenv_list`; do
-			if [ `_appenv_name $APP` == $NAME ]; then
-				readlink -f $APP
+			if [ -n "`_appenv_names $APP | xargs -n1 echo | grep -e \"^$NAME$\"`" ]; then
+				echo $APP
 				FOUND=true
 			fi
 		done
@@ -117,7 +120,7 @@ function _appenv_list {
 	if [ -d $DIR/.appenv ]; then
 		for APP in $DIR/.appenv/*.appenv.sh; do
 			if [ -e $APP ]; then
-				readlink -f $APP
+				echo $APP
 			fi
 		done
 	elif [ -f $DIR/.appenv ]; then
@@ -129,18 +132,22 @@ function _appenv_list {
 }
 
 function _appenv_name {
+	_appenv_names $1 
+}
+
+function _appenv_names {
 	local FILE=`_appenv_locate $1`
 	local NAME
 	if [ -e $FILE ]; then
 		NAME=`cat $FILE | grep appenv_name | awk '{print $2}'`
 	fi
-	if [ -z $NAME ]; then
-		if [ -z FILE ]; then
-			FILE=$1
-		fi
-		NAME=`echo $FILE | sed -E "s/(.*\/)?(auto\-[0-9]+\-)?(.*)\.appenv\.sh/\3/"`
+	if [ -n $NAME ]; then
+		echo $NAME
 	fi
-	echo $NAME
+	NAME=`echo $1 | sed -E "s/(.*\/)?(auto\-[0-9]+\-)?(.*)\.appenv\.sh/\3/"`
+	if [ -n $NAME ]; then
+		echo $NAME
+	fi
 }
 
 function _appenv_declares {

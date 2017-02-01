@@ -34,8 +34,8 @@ function appenv_declare {
 		VALUE="true"
 	fi
 	if [ "$VALUE" != "$CURRENT" ]; then
-	 	export ${NAME}=${VALUE}
-	 	export ${NAME}=${VALUE}
+	 	export ${NAME}="${VALUE}"
+	 	export ${NAME}="${VALUE}"
 	else
 		exit
 	fi
@@ -47,9 +47,9 @@ function appenv_append {
 	local CURRENT=`printenv $1`
 	# "Compatible answer"
 	if [ -z "$CURRENT" ]; then
-		export ${NAME}=${VALUE}
+		export ${NAME}="${VALUE}"
 	elif [ -n "${CURRENT##*$VALUE*}" ] ;then
-		export ${NAME}=${CURRENT}:${VALUE}
+		export ${NAME}="${CURRENT}:${VALUE}"
 	fi
 }
 
@@ -58,9 +58,9 @@ function appenv_prepend {
 	local VALUE=$2
 	local CURRENT=`printenv $1`
 	if [ -z "$CURRENT" ]; then
-		export ${NAME}=${VALUE}
+		export ${NAME}="${VALUE}"
 	elif [ -n "${CURRENT##*$VALUE*}" ] ;then
-		export ${NAME}=${VALUE}:${CURRENT}
+		export ${NAME}="${VALUE}:${CURRENT}"
 	fi
 }
 
@@ -68,16 +68,16 @@ function appenv_remove {
 	local NAME=$1
 	local VALUE=$2
 	local CURRENT=`printenv $1`
-	local UPDATED=${CURRENT//$VALUE/}
+	local UPDATED="${CURRENT//$VALUE/}"
 	if [ "$UPDATED" != "$CURRENT" ]; then
-	 	export ${NAME}=${UPDATED}
+	 	export ${NAME}="${UPDATED}"
 	fi
 }
 
 function appenv_set {
 	local NAME=$1
 	local VALUE=$2
- 	export ${NAME}=${VALUE}
+ 	export ${NAME}="${VALUE}"
 }
 
 function appenv_clear {
