@@ -65,7 +65,7 @@ commands are likely already available. To automatically install *appenv* from
 github, do the following:
 
 ```shell
-curl https://raw.githubusercontent.com/sebastien/appenv/install.sh | bash
+curl https://raw.githubusercontent.com/sebastien/appenv/master/install.sh | bash
 ```
 
 this will install the *appenv* scripts under `~/.local/bin`, you can also specify an
@@ -73,7 +73,7 @@ alternative location by setting the `APPENV_HOME` variable before
 running the install script.
 
 ```shell
-curl https://raw.githubusercontent.com/sebastien/appenv/install.sh\
+curl https://raw.githubusercontent.com/sebastien/appenv/master/install.sh\
 | export APPENV_HOME=~/local && bash
 ```
 
@@ -91,7 +91,6 @@ in **fish**:
 ```shell
 . ~/.local/bin/appenv.fish
 ```
-
 
 Usage
 =====

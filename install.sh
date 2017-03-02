@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 PREFIX=~/.local
 FILES="bin/appenv.bash bin/appenv.fish share/appenv/api.bash share/appenv/commands.bash share/appenv/run.bash share/appenv/merge.bash"
-BASE="https://raw.githubusercontent.com/sebastien/appenv"
+BASE="curl https://raw.githubusercontent.com/sebastien/appenv/master/"
+
 if [ "$1" = "uninstall" ]; then
 	for FILE in $FILES; do
 		FILE=$PREFIX/$FILE
