@@ -16,14 +16,20 @@ else
 		mkdir -p $PREFIX/bin
 	fi
 	for FILE in $FILES; do
-		SRC=$BASE/$FILE
 		DST=$PREFIX/$FILE
 		DIR=`dirname $DST`
-		echo Installing $SRC → $DST
 		if [ ! -d $DIR ]; then
 			mkdir -p $DIR
 		fi
-		curl $SRC > $DST
+		if [ -f $FILE ]; then
+			SRC=$FILE
+			echo Copying $SRC → $DST
+			cp -a $SRC $DST
+		else
+			SRC=$BASE/$FILE
+			echo Installing $SRC → $DST
+			curl $SRC > $DST
+		fi
 	done
 	chmod +x $PREFIX/bin/appenv.bash
 	chmod +x $PREFIX/bin/appenv.fish
