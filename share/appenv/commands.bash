@@ -52,12 +52,12 @@ function _appenv_out {
 function _appenv_output {
 	local OUT
 	local ERR
-	if [ -e $1 ]; then
+	if [ -e "$1" ]; then
 		OUT=`cat $1`
 	else
 		OUT=""
 	fi
-	if [ -e $2 ]; then
+	if [ -e "$2" ]; then
 		ERR=`cat $2`
 	else
 		ERR=""
@@ -67,10 +67,10 @@ function _appenv_output {
 	elif [ -n "$OUT" ]; then
 		_appenv_out $OUT
 	fi
-	if [ -e $1 ]; then
+	if [ -e "$1" ]; then
 		unlink $1
 	fi
-	if [ -e $2 ]; then
+	if [ -e "$2" ]; then
 		unlink $2
 	fi
 }
@@ -84,17 +84,17 @@ function _appenv_output {
 function _appenv_locate {
 	local APP
 	local NAME=$1
-	if [ -z $NAME ]; then
+	if [ -z "$NAME" ]; then
 		if [ -e .appenv ]; then
 			echo .appenv
 		else
 			_appenv_error "Cannot locate default .appenv file"
 		fi
-	elif [ -f $NAME ]; then
+	elif [ -f "$NAME" ]; then
 		echo $NAME
-	elif [ -d $NAME -a -e $NAME/.appenv ]; then
+	elif [ -d "$NAME" -a -e $NAME/.appenv ]; then
 		echo $NAME/.appenv
-	elif [ -L $NAME ]; then
+	elif [ -L "$NAME" ]; then
 		echo $NAME
 	else
 		local FOUND=false
@@ -104,7 +104,7 @@ function _appenv_locate {
 				FOUND=true
 			fi
 		done
-		if [ $FOUND == "false" ]; then
+		if [ "$FOUND" == "false" ]; then
 			_appenv_error "Cannot locate appenv file: $NAME"
 		fi
 	fi
@@ -113,20 +113,20 @@ function _appenv_locate {
 function _appenv_list {
 	local APP=0
 	local DIR=$1
-	if [ -z $DIR ]; then
+	if [ -z "$DIR" ]; then
 		DIR=`pwd`
 	fi
 	local PARENT=`dirname \`readlink -f $DIR\``
 	if [ -d $DIR/.appenv ]; then
 		for APP in $DIR/.appenv/*.appenv.sh; do
-			if [ -e $APP ]; then
+			if [ -e "$APP" ]; then
 				echo $APP
 			fi
 		done
 	elif [ -f $DIR/.appenv ]; then
 		readlink -f $DIR/.appenv
 	fi
-	if [ -n $PARENT -a $PARENT != "/" ]; then
+	if [ -n "$PARENT" -a "$PARENT" != "/" ]; then
 		_appenv_list $PARENT
 	fi
 }
@@ -138,23 +138,23 @@ function _appenv_name {
 function _appenv_names {
 	local FILE=`_appenv_locate $1`
 	local NAME
-	if [ -e $FILE ]; then
+	if [ -e "$FILE" ]; then
 		NAME=`cat $FILE | grep appenv_name | awk '{print $2}'`
 	fi
-	if [ -n $NAME ]; then
+	if [ -n "$NAME" ]; then
 		echo $NAME
 	fi
 	NAME=`echo $1 | sed -E "s/(.*\/)?(auto\-[0-9]+\-)?(.*)\.appenv\.sh/\3/"`
-	if [ -n $NAME ]; then
+	if [ -n "$NAME" ]; then
 		echo $NAME
 	fi
 }
 
 function _appenv_declares {
 	local NAME
-	if [ -f $1 ]; then
+	if [ -f "$1" ]; then
 		for NAME in `cat $1 | grep appenv_declare | awk '{print $2}'`; do
-			if [ -z $NAME ]; then
+			if [ -z "$NAME" ]; then
 				NAMES=`basename $1 | cut -d. -f1`
 			fi
 			echo $NAME

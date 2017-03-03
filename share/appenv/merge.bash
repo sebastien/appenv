@@ -28,7 +28,7 @@ ERRFILE=`mktemp`
 # We capture the current environment
 BEFORE=`_appenv_capture`
 
-if [ -z $1 ]; then
+if [ -z "$1" ]; then
 	APPENV_FILE=/dev/stdin
 	# When called with no argument, we eval stdin 
 	eval `cat /dev/stdin` 1>> $OUTFILE 2>> $ERRFILE

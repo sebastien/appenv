@@ -30,7 +30,7 @@ function appenv_declare {
 	local NAME=$1
 	local VALUE=$2
 	local CURRENT=`printenv $1`
-	if test -z "$VALUE"; then
+	if [ -z "$VALUE" ] ; then
 		VALUE="true"
 	fi
 	if [ "$VALUE" != "$CURRENT" ]; then
