@@ -110,7 +110,9 @@ end
 
 function appenv
 	if test -z $argv
-		appenv-autoload
+		for FILE in (appenv-list . | grep -v "$HOME/.appenv")
+			appenv-load $FILE
+		end
 	else
 		for NAME in $argv
 			appenv-load $NAME

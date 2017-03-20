@@ -92,7 +92,9 @@ function appenv-autoload {
 
 function appenv {
 	if [ -z "$1" ]; then
-		appenv-autoload
+		for FILE in `appenv-list . | grep -v "$HOME/.appenv"`; do
+			appenv-load $NAME
+		done
 	else
 		for NAME in $@; do
 			appenv-load $NAME
