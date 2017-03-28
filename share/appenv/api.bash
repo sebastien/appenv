@@ -97,11 +97,15 @@ function appenv_name {
 }
 
 function appenv_load {
-	local CURRENT=$PWD
-	local SUB=`dirname \`readlink -f $1\``
-	cd $SUB
+	local CUR_DIR="$PWD"
+	local CUR_FILE="$APPENV_FILE"
+	local SUB_FILE=`readlink -f $1`
+	local SUB_DIR=`dirname $SUB_FILE`
+	cd $SUB_DIR
+	APPENV_FILE=$SUB_FILE
 	source `basename $1`
-	cd $CURRENT
+	APPENV_FILE=$CUR_FILE
+	cd $CUR_DIR
 }
 
 # EOF
