@@ -30,6 +30,7 @@ BEFORE=`_appenv_capture`
 
 if [ -z "$1" ]; then
 	APPENV_FILE=/dev/stdin
+	APPENV_DIR=""
 	# When called with no argument, we eval stdin 
 	eval `cat /dev/stdin` 1>> $OUTFILE 2>> $ERRFILE
 else
@@ -37,6 +38,7 @@ else
 	# FIXME: Warn about other arguments being ignored.
 	FILE=`readlink -f $1`
 	APPENV_FILE=$FILE
+	APPENV_DIR=`dirname $FILE`
 	appenv_append APPENV_LOADED `readlink -f $1`
 	# We execute the appenv script, capturing both output and error
 	. $1 1>> $OUTFILE 2>> $ERRFILE

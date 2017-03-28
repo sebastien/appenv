@@ -103,8 +103,10 @@ function appenv_load {
 	local SUB_DIR=`dirname $SUB_FILE`
 	cd $SUB_DIR
 	APPENV_FILE=$SUB_FILE
+	APPENV_DIR=`dirname $SUB_FILE`
 	source `basename $1`
 	APPENV_FILE=$CUR_FILE
+	APPENV_DIR=`dirname $CUR_FILE`
 	cd $CUR_DIR
 }
 

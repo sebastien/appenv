@@ -81,9 +81,11 @@ end
 function appenv-import
 	if test -z $argv[1]
 		set -gx APPENV_FILE /dev/stdin
+		set -gx APPENV_DIR  ""
 		set SCRIPT (cat /dev/stdin | bash $BASE/../share/appenv/merge.bash)
 	else
 		set -gx APPENV_FILE $argv[1]
+		set -gx APPENV_DIR  (dirname $argv[1])
 		set SCRIPT (bash $BASE/../share/appenv/merge.bash $argv[1])
 	end
 	eval $SCRIPT
