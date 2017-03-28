@@ -284,6 +284,10 @@ defined in [share/appenv/api.bash](share/appenv/api.bash):
 	appenv_set APP_EXAMPLE_HOME ~/.local/share/example
 	```
 
+- **appenv_load** *PATH*
+
+	loads the *appenv* file at the given $PATH
+
 - **appenv_clear** *NAME*
 
 	unsets the given environment variable

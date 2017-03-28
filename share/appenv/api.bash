@@ -96,4 +96,12 @@ function appenv_name {
 	appenv_append APPENV_STATUS $1
 }
 
+function appenv_load {
+	local CURRENT=$PWD
+	local SUB=`dirname \`readlink -f $1\``
+	cd $SUB
+	source `basename $1`
+	cd $CURRENT
+}
+
 # EOF
