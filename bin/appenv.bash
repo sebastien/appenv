@@ -92,9 +92,12 @@ function appenv-autoload {
 
 function appenv {
 	if [ -z "$1" ]; then
-		for FILE in `appenv-list . | grep -v "$HOME/.appenv"`; do
+		local NAME=`appenv-list . | grep -v "$HOME/.appenv" | head -n1`
+		if [ -e $NAME]; then
 			appenv-load $NAME
-		done
+		else
+			_appenv_error "Cannot find an .appenv file in the current directory or its ancestors"
+		fi
 	else
 		for NAME in $@; do
 			appenv-load $NAME

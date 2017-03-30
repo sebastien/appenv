@@ -112,8 +112,11 @@ end
 
 function appenv
 	if test -z $argv
-		for FILE in (appenv-list . | grep -v "$HOME/.appenv")
-			appenv-load $FILE
+		set NAME (appenv-list . | grep -v "$HOME/.appenv" | head -n1)
+		if test -e $NAME
+			appenv-load $NAME
+		else
+				_appenv_run error "Cannot find an .appenv file in the current directory or its ancestors"
 		end
 	else
 		for NAME in $argv
