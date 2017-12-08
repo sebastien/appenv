@@ -181,11 +181,11 @@ function _appenv_loaded {
 }
 
 function _appenv_capture {
-	python -c "import os,sys,json;d=(dict((_,os.environ[_]) for _ in sorted(os.environ)));sys.stdout.write(json.dumps(d))"
+	python -c "import os,sys,json;d=(dict((_,os.environ[_]) for _ in sorted(os.environ) if not _.startswith('BASH_')));sys.stdout.write(json.dumps(d))"
 }
 
 function _appenv_diff {
-	echo $1 | python -c "import json,sys,os;b=json.loads(sys.stdin.read());d=dict((_,os.environ[_]) for _ in os.environ if b.get(_)!=os.environ[_]);[sys.stdout.write('_appenv_set \"{0}\" \"{1}\";'.format(v,k)) for v,k in d.items()]"
+	echo $1 | python -c "import json,sys,os;b=json.loads(sys.stdin.read());d=dict((_,os.environ[_]) for _ in os.environ if not _.startswith('BASH_') and b.get(_)!=os.environ[_]);[sys.stdout.write('_appenv_set \"{0}\" \"{1}\";'.format(v,k)) for v,k in d.items()]"
 }
 
 # EOF 
