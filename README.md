@@ -18,7 +18,7 @@ the following features:
 
 - supports per-user (`~/.appenv/`) and per-directory (`.appenv`) environments
 - init-style auto-loading of `~/.appenv/auto-NNN-*.appenv.sh` files
-- easily portable to other shells (zsh, tcsh, xonsh, etc)
+- easily portable to other shells (fish, zsh, tcsh, xonsh, etc)
 - nice API to set/append/prepend values to environment variables
 
 
@@ -74,7 +74,7 @@ running the install script.
 
 ```shell
 curl https://raw.githubusercontent.com/sebastien/appenv/master/install.sh\
-| export APPENV_HOME=~/local && bash
+| export APPENV_HOME=~/my-local/ && bash
 ```
 
 
@@ -150,12 +150,16 @@ the `.appenv` when it is in scope.
 
 ```shell
 $ cd myproject
-$ cat <<EOT >> .autoenv
+$ cat <<EOT >> .appenv
 appenv_declare MYPROJECT
 appenv_prepend PATH $MYPROJECT/bin
 appenv_prepend PYTHONPATH $MYPROJECT/lib/python
 EOT
-$ cd myproject ; autoenv
+$ cd myproject
+$ echo $MYPROJECT
+[ blank ]
+$ appenv
+[ the content of the local .appenv file is sourced ]
 $ echo $MYPROJECT
 /home/user/myproject
 ```
@@ -187,7 +191,9 @@ Once loaded in you shell, *appenv* offers the following commands:
 - ~~`appenv-unload FILE‥|NAME‥`~~
 
 	unloads a preset environment, reverting the changes
-	made by `appenv-load`. **Not implemented yet**
+	made by `appenv-load`. 
+
+	*Not implemented yet*
 
 - `appenv-loaded`
 
@@ -222,7 +228,7 @@ Once loaded in you shell, *appenv* offers the following commands:
 
 	*Not implemented yet*
 
-<a name="api">Environment scripts API
+<a name="api">`.appenv` scripts API
 =====================================
 
 Application environment scripts (`*.appenv.sh`) have the following API already available,
@@ -296,7 +302,20 @@ defined in [share/appenv/api.bash](share/appenv/api.bash):
 	appenv_clear APP_EXAMPLE_HOME
 	```
 
-*appenv* also manages the following environment variables:
+*appenv* also manages the following environment variables, which are defined
+while the script is being executed.
+
+- **APPENV_FILE**
+
+	The normalized path to the appenv file currently being loaded. This is
+	only available from within `*.appenv.sh` or `.appenv` files.
+
+- **APPENV_DIR**
+
+	The dirname of `APPENV_FILE`
+
+The following environment variables are defined when the script is executed
+and also automatically updated and exported:
 
 - **APPENV_LOADED**
 
@@ -306,8 +325,4 @@ defined in [share/appenv/api.bash](share/appenv/api.bash):
 
 	The list of loaded named scripts (by name) separated by colons ':'
 
-- **APPENV_FILE**
-
-	The normalized path to the appenv file currently being loaded. This is
-	only available from within `*.appenv.sh` files.
 
