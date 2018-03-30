@@ -27,6 +27,8 @@ end
 
 set BASE (dirname  (status -f))
 set FILE (basename (status -f))
+set -gx APPENV_SHELL (which fish)
+set -e  APPENV_POST
 
 # === OVERRIDES ===============================================================
 
@@ -100,6 +102,11 @@ function appenv-load
 			_appenv_run error "Cannot find appenv file $argv[1]"
 		end
 	end
+	if test ! -z "$APPENV_POST";
+		_appenv_run log "appenv▸post ← $APPENV_POST"
+		eval $APPENV_POST
+	end
+	set -e APPENV_POST
 end
 
 function appenv-autoload

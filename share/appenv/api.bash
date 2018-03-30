@@ -16,7 +16,7 @@
 # === VERSION =================================================================
 
 APPENV_API="0.0.0"
-
+APPENV_POST=""
 BASE=`readlink -f \`dirname ${BASH_SOURCE[0]}\``
 source $BASE/commands.bash
 
@@ -30,6 +30,7 @@ function appenv_declare {
 	local NAME=$1
 	local VALUE=$2
 	local CURRENT=`printenv $1`
+	export APPENV_POST=""
 	if [ -z "$VALUE" ] ; then
 		VALUE="true"
 	fi
@@ -93,7 +94,12 @@ function appenv_error {
 }
 
 function appenv_name {
-	appenv_append APPENV_STATUS $1
+	appenv_append APPENV_STATUS "$1"
+}
+
+function appenv_module {
+	appenv_name    "$1"
+	appenv_declare "$1" "$2"
 }
 
 function appenv_load {
@@ -108,6 +114,10 @@ function appenv_load {
 	APPENV_FILE=$CUR_FILE
 	APPENV_DIR=`dirname $CUR_FILE`
 	cd $CUR_DIR
+}
+
+function appenv_post {
+	appenv_set APPENV_POST "$@"
 }
 
 # EOF

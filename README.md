@@ -47,7 +47,6 @@ fi
 or using the *appenv* [shell API](#API) functions:
 
 ```shell
-appenv_name    example
 appenv_declare APP_EXAMPLE $HOME/.local/share/example
 appenv_prepend PATH        $APP_EXAMPLE/bin
 appenv_prepend MANPATH     $APP_EXAMPLE/share/man
@@ -234,6 +233,20 @@ Once loaded in you shell, *appenv* offers the following commands:
 Application environment scripts (`*.appenv.sh`) have the following API already available,
 defined in [share/appenv/api.bash](share/appenv/api.bash):
 
+
+- **appenv_module** *NAME* *VALUE?*
+
+	Declares a module with the given NAME and VALUE (optional). If the module
+	is already defined, the appenv script will exit right away. This is
+	a compbination of `appenv_declare` and `appenv_name`
+
+	```shell
+	appenv_module developer-env
+	# The following code will only be executed if MYAPP` is not defined.
+	# The `MYAPP` variable will be set to `true` by default.
+	‥
+	```
+
 - **appenv_declare** *NAME* *VALUE?*
 
 	exits the script if the environment variable *NAME* is defined (and
@@ -302,6 +315,16 @@ defined in [share/appenv/api.bash](share/appenv/api.bash):
 	appenv_clear APP_EXAMPLE_HOME
 	```
 
+- **appenv_post** *COMMAND*
+
+	sets a command that will be evaluated by the host shell once the appenv
+	file is loaded.
+
+	```
+	appenv nix-env
+	appenv_post "nix-shell --command $APPENV_SHELL"
+	```
+
 *appenv* also manages the following environment variables, which are defined
 while the script is being executed.
 
@@ -314,15 +337,19 @@ while the script is being executed.
 
 	The dirname of `APPENV_FILE`
 
+- **APPENV_SHELL**
+
+	The host shell from which the `appenv` command was called.
+
 The following environment variables are defined when the script is executed
 and also automatically updated and exported:
 
 - **APPENV_LOADED**
 
-	The list of loadded scripts (by path), by colons ':'
+	The list of loadded scripts (by path), by colons `:`
 
 - **APPENV_STATUS**
 
-	The list of loaded named scripts (by name) separated by colons ':'
+	The list of loaded named scripts (by name) separated by colons `:`
 
 

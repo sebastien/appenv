@@ -14,17 +14,17 @@
 # === COLORS ==================================================================
 
 # SEE: http://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
-RED='\033[00;31m'
-RED_BOLD='\033[01;31m'
+GREEN='\033[38;5;196m'
+GREEN_BOLD='\033[1;38;5;196m'
 
-GREEN='\033[00;32m'
-GREEN_BOLD='\033[01;32m'
+GREEN='\033[38;5;82m'
+GREEN_BOLD='\033[1;38;5;82m'
 
-YELLOW='\033[00;33m'
-YELLOW_BOLD='\033[01;33m'
+YELLOW='\033[38;5;220m'
+YELLOW_BOLD='\033[1;38;5;220m'
 
-BLUE='\033[00;34m'
-BLUE_BOLD='\033[01;34m'
+BLUE='\033[38;5;45m'
+BLUE_BOLD='\033[1;38;5;45m'
 
 NORMAL='\033[0m' # No Color
 NC="$NORMAL"

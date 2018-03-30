@@ -22,12 +22,13 @@ fi
 
 # === GLOBALS =================================================================
 
-BASE=`readlink -f \`dirname ${BASH_SOURCE[0]}\``
+BASE=$(readlink -f "$(dirname "${BASH_SOURCE[0]}")")
+export APPENV_SHELL=$(which bash)
 
 # === API =====================================================================
 # Sets the given environment variable to the given value
 
-source $BASE/../share/appenv/commands.bash
+source "$BASE/../share/appenv/commands.bash"
 
 # === OVERRIDES ===============================================================
 
@@ -80,6 +81,11 @@ function appenv-load {
 	else
 		_appenv_error "Cannot find appenv file $1"
 	fi
+	if [ ! -z "$APPENV_POST" ]; then
+		_appenv_log "appenv▸post ← $APPENV_POST"
+		eval "$APPENV_POST"
+	fi
+	unset APPENV_POST
 }
 
 function appenv-autoload {
