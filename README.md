@@ -323,7 +323,6 @@ defined in [share/appenv/api.bash](share/appenv/api.bash):
 	appenv nix-env
 	appenv_post "nix-shell --command $APPENV_SHELL"
 	```
-
 *appenv* also manages the following environment variables, which are defined
 while the script is being executed.
 
@@ -336,10 +335,6 @@ while the script is being executed.
 
 	The dirname of `APPENV_FILE`
 
-- **APPENV_SHELL**
-
-	The host shell from which the `appenv` command was called.
-
 The following environment variables are defined when the script is executed
 and also automatically updated and exported:
 
@@ -351,4 +346,6 @@ and also automatically updated and exported:
 
 	The list of loaded named scripts (by name) separated by colons `:`
 
+- **APPENV_SHELL**
 
+	The host shell from which the `appenv` command was called.
