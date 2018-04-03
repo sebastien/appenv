@@ -38,6 +38,7 @@ function appenv_declare {
 	 	export ${NAME}="${VALUE}"
 	 	export ${NAME}="${VALUE}"
 	else
+		_appenv_log "appenv: ${YELLOW_BOLD}$NAME${YELLOW} is already declared"
 		exit
 	fi
 }

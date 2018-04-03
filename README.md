@@ -76,7 +76,6 @@ curl https://raw.githubusercontent.com/sebastien/appenv/master/install.sh\
 | export APPENV_HOME=~/my-local/ && bash
 ```
 
-
 alternatively, you can install from this repository:
 
 ```shell
