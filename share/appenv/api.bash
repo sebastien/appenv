@@ -17,8 +17,8 @@
 
 APPENV_API="0.0.0"
 APPENV_POST=""
-BASE=`readlink -f \`dirname ${BASH_SOURCE[0]}\``
-source $BASE/commands.bash
+BASE=$(readlink -f "$(dirname "${BASH_SOURCE[0]}")")
+source "$BASE"/commands.bash
 
 # -----------------------------------------------------------------------------
 #
@@ -29,14 +29,15 @@ source $BASE/commands.bash
 function appenv_declare {
 	local NAME=$1
 	local VALUE=$2
-	local CURRENT=`printenv $1`
+	local CURRENT
+	CURRENT=$(printenv "$1")
 	export APPENV_POST=""
 	if [ -z "$VALUE" ] ; then
-		VALUE="true"
+		VALUE="$APPENV_FILE"
 	fi
 	if [ "$VALUE" != "$CURRENT" ]; then
-	 	export ${NAME}="${VALUE}"
-	 	export ${NAME}="${VALUE}"
+	 	export "${NAME}"="${VALUE}"
+	 	export "${NAME}"="${VALUE}"
 	else
 		_appenv_log "appenv: ${YELLOW_BOLD}$NAME${YELLOW} is already declared"
 		exit
@@ -46,48 +47,51 @@ function appenv_declare {
 function appenv_append {
 	local NAME=$1
 	local VALUE=$2
-	local CURRENT=`printenv $1`
+	local CURRENT
+	CURRENT=$(printenv "$1")
 	# "Compatible answer"
 	if [ -z "$CURRENT" ]; then
-		export ${NAME}="${VALUE}"
+		export "${NAME}"="${VALUE}"
 	elif [ -n "${CURRENT##*$VALUE*}" ] ;then
-		export ${NAME}="${CURRENT}:${VALUE}"
+		export "${NAME}=${CURRENT}:${VALUE}"
 	fi
 }
 
 function appenv_prepend {
 	local NAME=$1
 	local VALUE=$2
-	local CURRENT=`printenv $1`
+	local CURRENT
+	CURRENT=$(printenv "$1")
 	if [ -z "$CURRENT" ]; then
-		export ${NAME}="${VALUE}"
+		export "${NAME}"="${VALUE}"
 	elif [ -n "${CURRENT##*$VALUE*}" ] ;then
-		export ${NAME}="${VALUE}:${CURRENT}"
+		export "${NAME}=${VALUE}:${CURRENT}"
 	fi
 }
 
 function appenv_remove {
 	local NAME=$1
 	local VALUE=$2
-	local CURRENT=`printenv $1`
+	local CURRENT
+	CURRENT=$(printenv "$1")
 	local UPDATED="${CURRENT//$VALUE/}"
 	if [ "$UPDATED" != "$CURRENT" ]; then
-	 	export ${NAME}="${UPDATED}"
+	 	export "${NAME}"="${UPDATED}"
 	fi
 }
 
 function appenv_set {
 	local NAME=$1
 	local VALUE=$2
- 	export ${NAME}="${VALUE}"
+ 	export "${NAME}"="${VALUE}"
 }
 
 function appenv_clear {
-	export $1=
+	export "$1"=
 }
 
 function appenv_log {
-	echo -e "${YELLOW}${@}${NC}"
+	echo -e "${YELLOW}${*}${NC}"
 }
 
 function appenv_error {
@@ -99,22 +103,27 @@ function appenv_name {
 }
 
 function appenv_module {
+	local NAME
+	NAME=$(echo "$1" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
 	appenv_name    "$1"
-	appenv_declare "$1" "$2"
+	appenv_declare "$NAME" "$2"
 }
 
 function appenv_load {
 	local CUR_DIR="$PWD"
 	local CUR_FILE="$APPENV_FILE"
-	local SUB_FILE=`readlink -f $1`
-	local SUB_DIR=`dirname $SUB_FILE`
-	cd $SUB_DIR
-	APPENV_FILE=$SUB_FILE
-	APPENV_DIR=`dirname $SUB_FILE`
-	source `basename $1`
+	local SUB_FILE
+	local SUB_DIR
+	SUB_FILE=$(readlink -f "$1")
+	SUB_DIR=$(dirname "$SUB_FILE")
+	cd "$SUB_DIR" || exit
+	export APPENV_FILE=$SUB_FILE
+	export APPENV_DIR
+	APPENV_DIR=$(dirname "$SUB_FILE")
+	source $(basename "$1")
 	APPENV_FILE=$CUR_FILE
-	APPENV_DIR=`dirname $CUR_FILE`
-	cd $CUR_DIR
+	APPENV_DIR=$(dirname "$CUR_FILE")
+	cd "$CUR_DIR" || exit
 }
 
 function appenv_post {

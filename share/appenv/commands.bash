@@ -160,7 +160,7 @@ function _appenv_declares {
 			if [ -z "$NAME" ]; then
 				NAMES=`basename $1 | cut -d. -f1`
 			fi
-			echo $NAME
+			echo "$NAME"
 		done
 	else
 		_appenv_error "File does not exist: $1"
@@ -181,11 +181,11 @@ function _appenv_loaded {
 }
 
 function _appenv_capture {
-	python -c "import os,sys,json;d=(dict((_,os.environ[_]) for _ in sorted(os.environ) if not _.startswith('BASH_')));sys.stdout.write(json.dumps(d))"
+	python -c "import os,sys,json;d=(dict((_,os.environ[_]) for _ in sorted(os.environ) if not _.startswith('BASH_') and not _.startswith('fish_') and not _.startswith('_')));sys.stdout.write(json.dumps(d))"
 }
 
 function _appenv_diff {
-	echo $1 | python -c "import json,sys,os;b=json.loads(sys.stdin.read());d=dict((_,os.environ[_]) for _ in os.environ if not _.startswith('BASH_') and b.get(_)!=os.environ[_]);[sys.stdout.write('_appenv_set \"{0}\" \"{1}\";'.format(v,k)) for v,k in d.items()]"
+	echo "$1" | python -c "import json,sys,os;b=json.loads(sys.stdin.read());d=dict((_,os.environ[_]) for _ in os.environ if not _.startswith('BASH_') and not _.startswith('fish_') and not _.startswith('_') and b.get(_)!=os.environ[_]);[sys.stdout.write('_appenv_set \"{0}\" \"{1}\";'.format(v,k)) for v,k in d.items()]"
 }
 
 # EOF 
