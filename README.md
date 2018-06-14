@@ -87,13 +87,13 @@ bash install.sh
 Shell configuration
 -------------------
 
-To load these commands from your shell, do the following in **bash**:
+To load these commands from your shell, do the following in **bash** (in your `~/.bashrc`)
 
 ```shell
 source ~/.local/bin/appenv.bash
 ```
 
-in **fish**:
+in **fish** (in your `~/.config/fish/config.fish`):
 
 ```shell
 . ~/.local/bin/appenv.fish
