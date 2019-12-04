@@ -88,27 +88,35 @@ function _appenv_locate {
 	local APP
 	local NAME=$1
 	if [ -z "$NAME" ]; then
+		# Name is empty, so we're looking for an .appenv
+		# file
 		if [ -e .appenv ]; then
 			echo .appenv
 		else
 			_appenv_error "Cannot locate default .appenv file"
 		fi
 	elif [ -f "$NAME" ]; then
-		echo $NAME
-	elif [ -d "$NAME" -a -e $NAME/.appenv ]; then
-		echo $NAME/.appenv
+		#  The given name is a file, so we list is as is
+		echo "$NAME"
+	elif [ -d "$NAME" ] && [ -e "$NAME/.appenv" ]; then
+		# It's a directory, so we return the nested .appenv, if any
+		echo "$NAME/.appenv"
 	elif [ -L "$NAME" ]; then
-		echo $NAME
+		# It's a link, which is like a file, so we resuturn as-is
+		echo "$NAME"
 	else
+		# it's not found, so we need to list all the available append
+		# and grep the ones that match the given name.
 		local FOUND=false
-		for APP in `_appenv_list`; do
+		for APP in $(_appenv_list); do
 			if [ -n "`_appenv_names $APP | xargs -n1 echo | grep -e \"^$NAME$\"`" ]; then
-				echo $APP
+				echo "$APP"
 				FOUND=true
+				break
 			fi
 		done
 		if [ "$FOUND" == "false" ]; then
-			_appenv_error "Cannot locate appenv file: $NAME"
+			_appenv_error "_appenv_locate: Cannot locate appenv file: $NAME"
 		fi
 	fi
 }
@@ -117,39 +125,41 @@ function _appenv_list {
 	local APP=0
 	local DIR=$1
 	if [ -z "$DIR" ]; then
-		DIR=`pwd`
+		DIR=$(pwd)
 	fi
-	local PARENT=`dirname \`readlink -f $DIR\``
-	if [ -d $DIR/.appenv ]; then
-		for APP in $DIR/.appenv/*.appenv.sh; do
+	local PARENT
+	PARENT=$(dirname "$(readlink -f "$DIR")")
+	if [ -d "$DIR"/.appenv ]; then
+		for APP in "$DIR"/.appenv/*.appenv.sh; do
 			if [ -e "$APP" ]; then
-				echo $APP
+				echo "$APP"
 			fi
 		done
-	elif [ -f $DIR/.appenv ]; then
-		readlink -f $DIR/.appenv
+	elif [ -f "$DIR"/.appenv ]; then
+		readlink -f "$DIR/.appenv"
 	fi
-	if [ -n "$PARENT" -a "$PARENT" != "/" ]; then
-		_appenv_list $PARENT
+	if [ -n "$PARENT" ] && [ "$PARENT" != "/" ]; then
+		_appenv_list "$PARENT"
 	fi
 }
 
+
 function _appenv_name {
-	_appenv_names $1 
+	_appenv_names "$1"
 }
 
 function _appenv_names {
-	local FILE=`_appenv_locate $1`
+	local FILE=$(_appenv_locate "$1")
 	local NAME
 	if [ -e "$FILE" ]; then
-		NAME=`cat $FILE | grep appenv_name | awk '{print $2}'`
+		NAME=$(grep appenv_name < "$FILE" | awk '{print $2}')
 	fi
 	if [ -n "$NAME" ]; then
-		echo $NAME
+		echo "$NAME"
 	fi
-	NAME=`echo $1 | sed -E "s/(.*\/)?(auto\-[0-9]+\-)?(.*)\.appenv\.sh/\3/"`
+	NAME=$(echo "$1" | sed -E "s/(.*\/)?(auto\-[0-9]+\-)?(.*)\.appenv\.sh/\3/")
 	if [ -n "$NAME" ]; then
-		echo $NAME
+		echo "$NAME"
 	fi
 }
 
@@ -168,6 +178,27 @@ function _appenv_declares {
 	unset NAME
 }
 
+## function#_appenv_load
+##   param#FILE_PATH: The shell script to source, by path or by name
+##   desc|texto
+##      Tries to locate the `FILE_PATH` using `_appenv_locate` and
+##      then
+##      .appenv file) script, merging its effects into the current
+##      environment. This will take care of cd'ing into the source
+##      file so that relative paths will be resolved.
+##   :
+function _appenv_load {
+	local FILE_PATH
+	FILE_PATH=$(_appenv_locate "$1")
+	if [ -z "$FILE_PATH" ]; then
+		_appenv_error "_appenv_load: Cannot locate an appenv file like: $1"
+	elif [ -e "$FILE_PATH" ]; then
+		_appenv_source "$FILE_PATH"
+	else
+		_appenv_error "_appenv_load: Could not resolve file $1 to $FILE_PATH"
+	fi
+}
+
 function _appenv_unload {
 	_appenv_error "appenv_unload: Not implemented yet"
 }
@@ -179,6 +210,50 @@ function _appenv_loaded {
 		echo "$APP"
 	done
 }
+
+## function#_appenv_source
+##   param#FILE_PATH: The shell script to source
+##   desc|texto
+##      Sources the given shell script, which will execute the (presumably
+##      .appenv file) script, merging its effects into the current
+##      environment. This will take care of cd'ing into the source
+##      file so that relative paths will be resolved.
+##   :
+function _appenv_source {
+	local FILE_PATH="$1"
+	if [ ! -e "$FILE_PATH" ]; then
+		_appenv_error: "_appenv_source: Given file does not exists '$FILE_PATH'"
+	else
+		# This basically resolves the original FILE_PATH, cd to it, sources
+		# it and then goes back to the current directory.
+		local CUR_DIR="$PWD"
+		local CUR_FILE="$APPENV_FILE"
+		SUB_FILE=$(readlink -f "$FILE_PATH")
+		if [ -z "$SUB_FILE" ]; then
+			_appenv_error "appenv_source: Could not resolve file '$FILE_PATH'"
+		fi
+		local SUB_DIR
+		SUB_DIR=$(dirname "$SUB_FILE")
+		if [ -d "$SUB_DIR" ]; then
+			cd "$SUB_DIR" || return
+			export APPENV_FILE=$SUB_FILE
+			export APPENV_DIR
+			APPENV_DIR=$(dirname "$SUB_FILE")
+			source "$SUB_FILE"
+			APPENV_FILE=$CUR_FILE
+			APPENV_DIR=$(dirname "$CUR_FILE")
+			cd "$CUR_DIR" || return
+		else
+			_appenv_error "appenv_source: Could not find directory '$SUB_DIR'"
+		fi
+	fi
+}
+
+# -----------------------------------------------------------------------------
+#
+# CRITICAL PARTS/MECHANICS
+#
+# -----------------------------------------------------------------------------
 
 function _appenv_capture {
 	python -c "import os,sys,json;d=(dict((_,os.environ[_]) for _ in sorted(os.environ) if not _.startswith('BASH_') and not _.startswith('fish_') and not _.startswith('_')));sys.stdout.write(json.dumps(d))"

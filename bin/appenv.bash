@@ -41,74 +41,72 @@ function _appenv_set {
 # === WRAPPERS ================================================================
 
 function appenv-locate {
-	_appenv_locate $@
+	_appenv_locate "$@"
 }
 
 function appenv-list {
-	_appenv_list $@
+	_appenv_list "$@"
 }
 
 function appenv-loaded {
-	_appenv_loaded $@
+	_appenv_loaded "$@"
 }
 
 function appenv-name {
-	_appenv_name $@
+	_appenv_name "$@"
 }
 
 function appenv-declares {
-	_appenv_declares $@
+	_appenv_declares "$@"
 }
 
 # === MAIN ====================================================================
 
-function appenv-import {
+function appenv-load {
 	local SCRIPT
-	# NOTE: We need to call `appenv_import` directly so as to not create
-	# a sub-shell
 	if [ -z "$1" ]; then
-		SCRIPT=`cat /dev/stdin | $BASE/../appenv/merge.bash`
+		SCRIPT=$(cat /dev/stdin | "$BASE"/../appenv/merge.bash)
 	else
-		SCRIPT=`. $BASE/../appenv/merge.bash $1`
+		FILE_PATH=$(_appenv_locate "$1")
+		if [ -z "$FILE_PATH" ]; then
+			_appenv_error "appenv-load[bash]: Cannot locate an appenv file like: $1"
+		elif [ -e "$FILE_PATH" ]; then
+			SCRIPT=$(. "$BASE"/../appenv/merge.bash "$FILE_PATH")
+		else
+			_appenv_error "_appenv-load[bash]: Could not resolve file $1 to $FILE_PATH"
+		fi
 	fi
 	eval "${SCRIPT}"
-}
-
-function appenv-load {
-	local NAME=`_appenv_locate $1`
-	if [ -e $NAME ]; then
-		appenv-import $NAME
-	else
-		_appenv_error "Cannot find appenv file $1"
-	fi
-	if [ ! -z "$APPENV_POST" ]; then
-		_appenv_log "appenv▸post ← $APPENV_POST"
+	if [ -n "$APPENV_POST" ]; then
 		eval "$APPENV_POST"
+		unset APPENV_POST
 	fi
-	unset APPENV_POST
+
 }
 
 function appenv-autoload {
 	local FILE
-	for FILE in `appenv-list .`; do
-		_appenv_log "⛀ `_appenv_name $FILE` → `basename \`dirname $FILE\``/`basename $FILE` "
-		appenv-load $FILE
+	for FILE in $(appenv-list .); do
+		_appenv_log "⛀ $(_appenv_name "$FILE") → $(basename $(dirname "$FILE"))/$(basename "$FILE") "
+		appenv-load "$FILE"
 	done
 }
 
 function appenv {
+	local NAME
 	if [ -z "$1" ]; then
-		local NAME=`appenv-list . | grep -v "$HOME/.appenv" | head -n1`
+		NAME=$(appenv-list . | grep -v "$HOME/.appenv" | head -n1)
 		if [ -e "$NAME" ]; then
-			appenv-load $NAME
+			appenv-load "$NAME"
 		else
 			_appenv_error "Cannot find an .appenv file in the current directory or its ancestors"
 		fi
 	else
-		for NAME in $@; do
-			appenv-load $NAME
+		for NAME in "$@"; do
+			appenv-load "$NAME"
 		done
 	fi
 }
+
 
 # EOF

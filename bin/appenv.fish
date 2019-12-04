@@ -44,6 +44,9 @@ function _appenv_set
 	set NAME  $argv[1]
 	set VALUE $argv[2]
 	switch $NAME
+		case 'SHLVL'
+			# We don't do anything, we want to absorb this one, otherwise
+			# Fish will complain
 		case 'PATH'
 			# In Fish, PATH has a special handling
 			# https://fishshell.com/docs/current/tutorial.html#tut_path
@@ -90,23 +93,34 @@ function appenv-import
 		set -gx APPENV_DIR  (dirname $argv[1])
 		set SCRIPT (bash $BASE/../share/appenv/merge.bash $argv[1])
 	end
-	eval $SCRIPT
 end
 
 function appenv-load
 	for FILE in $argv
-		set NAME (_appenv_run locate $FILE)
-		if test -e $NAME
-			appenv-import $NAME
+		if test -z "$FILE"
+			set -gx APPENV_FILE /dev/stdin
+			set -gx APPENV_DIR  ""
+			set SCRIPT (cat /dev/stdin | "$BASE"/../appenv/merge.bash)
 		else
-			_appenv_run error "Cannot find appenv file $argv[1]"
+			set FILE_PATH (_appenv_run locate "$FILE")
+			if test -z $FILE_PATH
+				_appenv_run error "appenv-load[fish]: Cannot locate an appenv file like: $FILE"
+			elif test ! -e $FILE_PATH
+				_appenv_run error "appenv-load[fish]: Could not access file '$FILE_PATH' resolved from '$FILE'"
+			else
+				set -gx APPENV_FILE $FILE_PATH
+				set -gx APPENV_DIR  (dirname $FILE_PATH)
+				set SCRIPT (bash $BASE/../share/appenv/merge.bash "$FILE_PATH")
+			end
 		end
+		if test ! -z "$SCRIPT";
+			eval $SCRIPT
+		end
+		if test ! -z "$APPENV_POST";
+			eval $APPENV_POST
+		end
+		set -e APPENV_POST
 	end
-	if test ! -z "$APPENV_POST";
-		_appenv_run log "appenv▸post ← $APPENV_POST"
-		eval $APPENV_POST
-	end
-	set -e APPENV_POST
 end
 
 function appenv-autoload

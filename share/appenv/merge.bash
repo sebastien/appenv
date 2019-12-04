@@ -19,36 +19,36 @@
 # if [ -z $APPENV_API ]; then
 # 	source `dirname ${BASH_SOURCE[0]}`/_appenv.api.bash
 # fi
-source `dirname ${BASH_SOURCE[0]}`/api.bash
+source $(dirname ${BASH_SOURCE[0]})/api.bash
 
 # === MAIN ====================================================================
-OUTFILE=`mktemp`
-ERRFILE=`mktemp`
+OUTFILE=$(mktemp)
+ERRFILE=$(mktemp)
 
 # We capture the current environment
-BEFORE=`_appenv_capture`
+BEFORE=$(_appenv_capture)
 
 if [ -z "$1" ]; then
 	APPENV_FILE=/dev/stdin
 	APPENV_DIR=""
 	# When called with no argument, we eval stdin 
-	eval `cat /dev/stdin` 1>> $OUTFILE 2>> $ERRFILE
+	eval $(cat /dev/stdin) 1>> "$OUTFILE" 2>> "$ERRFILE"
 else
 	# When called with an argument, we interpret the first one
 	# FIXME: Warn about other arguments being ignored.
-	FILE=`readlink -f $1`
+	FILE=$(readlink -f "$1")
 	APPENV_FILE=$FILE
-	APPENV_DIR=`dirname $FILE`
-	appenv_append APPENV_LOADED `readlink -f $1`
+	APPENV_DIR=$(dirname "$FILE")
+	appenv_append APPENV_LOADED $(readlink -f "$1")
 	# We execute the appenv script, capturing both output and error
-	. $1 1>> $OUTFILE 2>> $ERRFILE
+	. "$1" 1>> "$OUTFILE" 2>> "$ERRFILE"
 fi
 
 # We get the diff with BEFORE
-AFTER=`_appenv_diff "$BEFORE"`
+AFTER=$(_appenv_diff "$BEFORE")
 
 # Output the difference
-echo $AFTER
+echo "$AFTER"
 
 # And output any error message that we might have found
 echo _appenv_output $OUTFILE $ERRFILE

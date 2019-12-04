@@ -9,7 +9,9 @@
 #              \/_/    \/_/
 # 
 # -----------------------------------------------------------------------------
-# _appenv.api.bash -- Bash implementation fo the appenv environment API.
+# _appenv.api.bash -- Bash implementation fo the appenv environment API. The
+# commands defined here are what people would use when writing their .appenv
+# scripts.
 #
 # SEE: http://stackoverflow.com/questions/229551/string-contains-in-bash
 
@@ -25,6 +27,8 @@ source "$BASE"/commands.bash
 # LOW-LEVEL API
 #
 # -----------------------------------------------------------------------------
+
+# TODO: This is the user-facing API and should then be documented properly
 
 function appenv_declare {
 	local NAME=$1
@@ -47,13 +51,17 @@ function appenv_declare {
 function appenv_append {
 	local NAME=$1
 	local VALUE=$2
+	local SEP=$3
+	if [ -z "$SEP" ]; then
+		SEP=":"
+	fi
 	local CURRENT
 	CURRENT=$(printenv "$1")
 	# "Compatible answer"
 	if [ -z "$CURRENT" ]; then
 		export "${NAME}"="${VALUE}"
 	elif [ -n "${CURRENT##*$VALUE*}" ] ;then
-		export "${NAME}=${CURRENT}:${VALUE}"
+		export "${NAME}=${CURRENT}${SEP}${VALUE}"
 	fi
 }
 
@@ -110,24 +118,11 @@ function appenv_module {
 }
 
 function appenv_load {
-	local CUR_DIR="$PWD"
-	local CUR_FILE="$APPENV_FILE"
-	local SUB_FILE
-	local SUB_DIR
-	SUB_FILE=$(readlink -f "$1")
-	SUB_DIR=$(dirname "$SUB_FILE")
-	cd "$SUB_DIR" || exit
-	export APPENV_FILE=$SUB_FILE
-	export APPENV_DIR
-	APPENV_DIR=$(dirname "$SUB_FILE")
-	source $(basename "$1")
-	APPENV_FILE=$CUR_FILE
-	APPENV_DIR=$(dirname "$CUR_FILE")
-	cd "$CUR_DIR" || exit
+	_appenv_load "$1"
 }
 
 function appenv_post {
-	appenv_set APPENV_POST "$@"
+	appenv_append APPENV_POST "$*" ';'
 }
 
 # EOF
