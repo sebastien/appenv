@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
-#    __     _____   _____      __    ___   __  __  
-#  /'__`\  /\ '__`\/\ '__`\  /'__`\/' _ `\/\ \/\ \ 
+#    __     _____   _____      __    ___   __  __
+#  /'__`\  /\ '__`\/\ '__`\  /'__`\/' _ `\/\ \/\ \
 # /\ \L\.\_\ \ \L\ \ \ \L\ \/\  __//\ \/\ \ \ \_/ |
-# \ \__/.\_\\ \ ,__/\ \ ,__/\ \____\ \_\ \_\ \___/ 
-#  \/__/\/_/ \ \ \/  \ \ \/  \/____/\/_/\/_/\/__/  
-#             \ \_\   \ \_\                        
+# \ \__/.\_\\ \ ,__/\ \ ,__/\ \____\ \_\ \_\ \___/
+#  \/__/\/_/ \ \ \/  \ \ \/  \/____/\/_/\/_/\/__/
+#             \ \_\   \ \_\
 #              \/_/    \/_/
-# 
+#
 # -----------------------------------------------------------------------------
 # _appenv.command.bash
 
@@ -256,11 +256,11 @@ function _appenv_source {
 # -----------------------------------------------------------------------------
 
 function _appenv_capture {
-	python -c "import os,sys,json;d=(dict((_,os.environ[_]) for _ in sorted(os.environ) if not _.startswith('BASH_') and not _.startswith('fish_') and not _.startswith('_')));sys.stdout.write(json.dumps(d))"
+	"$APPENV_PYTHON" -c "import os,sys,json;d=(dict((_,os.environ[_]) for _ in sorted(os.environ) if not _.startswith('BASH_') and not _.startswith('fish_') and not _.startswith('_')));sys.stdout.write(json.dumps(d))"
 }
 
 function _appenv_diff {
-	echo "$1" | python -c "import json,sys,os;b=json.loads(sys.stdin.read());d=dict((_,os.environ[_]) for _ in os.environ if not _.startswith('BASH_') and not _.startswith('fish_') and not _.startswith('_') and b.get(_)!=os.environ[_]);[sys.stdout.write('_appenv_set \"{0}\" \"{1}\";'.format(v,k)) for v,k in d.items()]"
+	echo "$1" | "$APPENV_PYTHON" -c "import json,sys,os;b=json.loads(sys.stdin.read());d=dict((_,os.environ[_]) for _ in os.environ if not _.startswith('BASH_') and not _.startswith('fish_') and not _.startswith('_') and b.get(_)!=os.environ[_]);[sys.stdout.write('_appenv_set \"{0}\" \"{1}\";'.format(v,k)) for v,k in d.items()]"
 }
 
-# EOF 
+# EOF

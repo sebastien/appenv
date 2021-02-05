@@ -16,8 +16,14 @@
 
 # === REQUIREMENTS ===========================================================
 
-if [ -z `which python` ]; then
-	echo 'appenv: `python` is required'; exit
+if [ ! -z `which python` ]; then
+	APPENV_PYTHON="python"
+elif [ ! -z `which python3` ]; then
+	APPENV_PYTHON="python3"
+fi
+
+if [ -z "$APPENV_PYTHON" ]; then
+	echo 'appenv: No Python interpreter found, install python or set APPENV_PYTHON variable'
 fi
 
 # === GLOBALS =================================================================

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
-#    __     _____   _____      __    ___   __  __  
-#  /'__`\  /\ '__`\/\ '__`\  /'__`\/' _ `\/\ \/\ \ 
+#    __     _____   _____      __    ___   __  __
+#  /'__`\  /\ '__`\/\ '__`\  /'__`\/' _ `\/\ \/\ \
 # /\ \L\.\_\ \ \L\ \ \ \L\ \/\  __//\ \/\ \ \ \_/ |
-# \ \__/.\_\\ \ ,__/\ \ ,__/\ \____\ \_\ \_\ \___/ 
-#  \/__/\/_/ \ \ \/  \ \ \/  \/____/\/_/\/_/\/__/  
-#             \ \_\   \ \_\                        
+# \ \__/.\_\\ \ ,__/\ \ ,__/\ \____\ \_\ \_\ \___/
+#  \/__/\/_/ \ \ \/  \ \ \/  \/____/\/_/\/_/\/__/
+#             \ \_\   \ \_\
 #              \/_/    \/_/
-# 
+#
 # -----------------------------------------------------------------------------
 # _appenv.api.bash -- Bash implementation fo the appenv environment API. The
 # commands defined here are what people would use when writing their .appenv
@@ -31,7 +31,7 @@ source "$BASE"/commands.bash
 # TODO: This is the user-facing API and should then be documented properly
 
 function appenv_declare {
-	local NAME=$1
+	local NAME=${1//[-]/_}
 	local VALUE=$2
 	local CURRENT
 	CURRENT=$(printenv "$1")

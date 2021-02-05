@@ -1,17 +1,17 @@
 #!/usr/bin/env fish
 #
-#    __     _____   _____      __    ___   __  __  
-#  /'__`\  /\ '__`\/\ '__`\  /'__`\/' _ `\/\ \/\ \ 
+#    __     _____   _____      __    ___   __  __
+#  /'__`\  /\ '__`\/\ '__`\  /'__`\/' _ `\/\ \/\ \
 # /\ \L\.\_\ \ \L\ \ \ \L\ \/\  __//\ \/\ \ \ \_/ |
-# \ \__/.\_\\ \ ,__/\ \ ,__/\ \____\ \_\ \_\ \___/ 
-#  \/__/\/_/ \ \ \/  \ \ \/  \/____/\/_/\/_/\/__/  
-#             \ \_\   \ \_\                        
+# \ \__/.\_\\ \ ,__/\ \ ,__/\ \____\ \_\ \_\ \___/
+#  \/__/\/_/ \ \ \/  \ \ \/  \/____/\/_/\/_/\/__/
+#             \ \_\   \ \_\
 #              \/_/    \/_/
-# 
+#
 # -----------------------------------------------------------------------------
 # _appenv.fish -- Fish shell implementation of the appenv commands.
-# This loads one or more bash-compatible scripts given as argument and 
-# propagates the changed made to the environnemnt back into 
+# This loads one or more bash-compatible scripts given as argument and
+# propagates the changed made to the environnemnt back into
 # the current Fish shell session.
 
 # === REQUIREMENTS ===========================================================
