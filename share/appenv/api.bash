@@ -41,7 +41,7 @@ function appenv_declare {
 	fi
 	if [ "$VALUE" != "$CURRENT" ]; then
 	 	export "${NAME}"="${VALUE}"
-	 	export "${NAME}"="${VALUE}"
+		appenv_name "$1"
 	else
 		_appenv_log "appenv: ${YELLOW_BOLD}$NAME${YELLOW} is already declared"
 		exit
