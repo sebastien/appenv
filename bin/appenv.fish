@@ -25,15 +25,14 @@ end
 
 # === GLOBALS =================================================================
 
-set BASE (dirname  (status -f))
-set FILE (basename (status -f))
+set APPENV_BASE (dirname  (status -f))
 set -gx APPENV_SHELL (which fish)
 set -e  APPENV_POST
 
 # === OVERRIDES ===============================================================
 
 function _appenv_run
-	bash $BASE/../share/appenv/run.bash $argv
+	bash $APPENV_BASE/../share/appenv/run.bash $argv
 end
 
 function _appenv_output
@@ -87,11 +86,11 @@ function appenv-import
 	if test -z $argv[1]
 		set -gx APPENV_FILE /dev/stdin
 		set -gx APPENV_DIR  ""
-		set SCRIPT (cat /dev/stdin | bash $BASE/../share/appenv/merge.bash)
+		set SCRIPT (cat /dev/stdin | bash $APPENV_BASE/../share/appenv/merge.bash)
 	else
 		set -gx APPENV_FILE $argv[1]
 		set -gx APPENV_DIR  (dirname $argv[1])
-		set SCRIPT (bash $BASE/../share/appenv/merge.bash $argv[1])
+		set SCRIPT (bash $APPENV_BASE/../share/appenv/merge.bash $argv[1])
 	end
 end
 
@@ -100,7 +99,7 @@ function appenv-load
 		if test -z "$FILE"
 			set -gx APPENV_FILE /dev/stdin
 			set -gx APPENV_DIR  ""
-			set SCRIPT (cat /dev/stdin | "$BASE"/../appenv/merge.bash)
+			set SCRIPT (cat /dev/stdin | "$APPENV_BASE"/../appenv/merge.bash)
 		else
 			set FILE_PATH (_appenv_run locate "$FILE")
 			if test -z $FILE_PATH
@@ -110,7 +109,7 @@ function appenv-load
 			else
 				set -gx APPENV_FILE $FILE_PATH
 				set -gx APPENV_DIR  (dirname $FILE_PATH)
-				set SCRIPT (bash $BASE/../share/appenv/merge.bash "$FILE_PATH")
+				set SCRIPT (bash $APPENV_BASE/../share/appenv/merge.bash "$FILE_PATH")
 			end
 		end
 		if test ! -z "$SCRIPT";

@@ -32,7 +32,7 @@ NC="$NORMAL"
 # === PATHS ==================================================================
 
 SRC=${BASH_SOURCE[0]}
-BASE=`dirname  $SRC`
+APPENV_BASE=`dirname  $SRC`
 
 # -----------------------------------------------------------------------------
 #
@@ -206,7 +206,7 @@ function _appenv_unload {
 function _appenv_loaded {
 	local APP
 	# FIXME: This does not seem to work
-	for APP in ${APPENV_LOADED//:/}; do
+	for APP in $(echo "$APPENV_LOADED" | tr ":" "\n"); do
 		echo "$APP"
 	done
 }

@@ -28,13 +28,13 @@ fi
 
 # === GLOBALS =================================================================
 
-BASE=$(readlink -f "$(dirname "${BASH_SOURCE[0]}")")
+APPENV_BASE=$(readlink -f "$(dirname "${BASH_SOURCE[0]}")")
 export APPENV_SHELL=$(which bash)
 
 # === API =====================================================================
 # Sets the given environment variable to the given value
 
-source "$BASE/../share/appenv/commands.bash"
+source "$APPENV_BASE/../share/appenv/commands.bash"
 
 # === OVERRIDES ===============================================================
 
@@ -71,13 +71,13 @@ function appenv-declares {
 function appenv-load {
 	local SCRIPT
 	if [ -z "$1" ]; then
-		SCRIPT=$(cat /dev/stdin | "$BASE"/../appenv/merge.bash)
+		SCRIPT=$(cat /dev/stdin | "$APPENV_BASE"/../appenv/merge.bash)
 	else
 		FILE_PATH=$(_appenv_locate "$1")
 		if [ -z "$FILE_PATH" ]; then
 			_appenv_error "appenv-load[bash]: Cannot locate an appenv file like: $1"
 		elif [ -e "$FILE_PATH" ]; then
-			SCRIPT=$(. "$BASE"/../appenv/merge.bash "$FILE_PATH")
+			SCRIPT=$(. "$APPENV_BASE"/../appenv/merge.bash "$FILE_PATH")
 		else
 			_appenv_error "_appenv-load[bash]: Could not resolve file $1 to $FILE_PATH"
 		fi
