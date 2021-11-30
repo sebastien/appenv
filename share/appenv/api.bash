@@ -19,8 +19,8 @@
 
 APPENV_API="0.0.0"
 APPENV_POST=""
-APPENV_BASE=$(readlink -f "$(dirname "${BASH_SOURCE[0]}")")
-source "$APPENV_BASE"/commands.bash
+APPENV_LIB=$(readlink -f "$(dirname "${BASH_SOURCE[0]}")")
+source "$APPENV_LIB"/commands.bash
 
 # -----------------------------------------------------------------------------
 #

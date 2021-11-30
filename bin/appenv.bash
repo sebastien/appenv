@@ -30,14 +30,14 @@ fi
 
 APPENV_BASE=$(readlink -f "$(dirname "${BASH_SOURCE[0]}")")
 if [ -z "$APPENV_LIB" ]; then
-	export APPENV_LIB="$APPENV_LIB"/../share/appenv
+	APPENV_LIB="$APPENV_BASE"/../share/appenv
 fi
-export APPENV_SHELL=$(which bash 2> /dev/null)
+APPENV_SHELL=$(which bash 2> /dev/null)
 
 # === API =====================================================================
 # Sets the given environment variable to the given value
 
-source "$APPENV_HOME/commands.bash"
+source "$APPENV_LIB/commands.bash"
 
 # === OVERRIDES ===============================================================
 
