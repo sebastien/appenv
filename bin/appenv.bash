@@ -105,10 +105,15 @@ function appenv-autoload {
 function appenv {
 	local NAME
 	if [ -z "$1" ]; then
-		NAME=$(appenv-list . | grep -v "$HOME/.appenv" | head -n1)
-		if [ -e "$NAME" ]; then
-			appenv-load "$NAME"
-		else
+		found=""
+		for NAME in $(appenv-list .); do
+			if [ -e "$NAME" ]; then
+				appenv-load "$NAME"
+				found=1
+				break
+			fi
+		done
+		if [ -z "$found" ]; then
 			_appenv_error "Cannot find an .appenv file in the current directory or its ancestors"
 		fi
 	else
