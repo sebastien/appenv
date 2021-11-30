@@ -259,8 +259,15 @@ function _appenv_capture {
 	"$APPENV_PYTHON" -c "import os,sys,json;d=(dict((_,os.environ[_]) for _ in sorted(os.environ) if not _.startswith('BASH_') and not _.startswith('fish_') and not _.startswith('_')));sys.stdout.write(json.dumps(d))"
 }
 
+# --
+# Generates the diff between the new and the current environment, outputting
+#
+# ```
+#_appenv_set "EDITOR" "vi" "nvim";
+# _appenv_set "SHLVL" "0" "1";
+# ```
 function _appenv_diff {
-	echo "$1" | "$APPENV_PYTHON" -c "import json,sys,os;b=json.loads(sys.stdin.read());d=dict((_,os.environ[_]) for _ in os.environ if not _.startswith('BASH_') and not _.startswith('fish_') and not _.startswith('_') and b.get(_)!=os.environ[_]);[sys.stdout.write('_appenv_set \"{0}\" \"{1}\";'.format(v,k)) for v,k in d.items()]"
+	echo "$1" | "$APPENV_PYTHON" -c "import json,sys,os;b=json.load(sys.stdin); d=dict((_,(os.environ[_],b.get(_,''))) for _ in os.environ if not _.startswith('BASH_') and not _.startswith('fish_') and not _.startswith('_') and b.get(_)!=os.environ[_]);[sys.stdout.write('_appenv_set \"{0}\" \"{1}\" \"{2}\";\n'.format(k,v[0],v[1])) for k,v in d.items()]"
 }
 
 # EOF
