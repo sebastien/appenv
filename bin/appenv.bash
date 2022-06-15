@@ -20,6 +20,10 @@ if [ ! -z `which python` ]; then
 	APPENV_PYTHON="python"
 elif [ ! -z `which python3` ]; then
 	APPENV_PYTHON="python3"
+elif [ ! -z "$PYTHON"]; then
+	APPENV_PYTHON="$PYTHON"
+else
+	APPENV_PYTHON="python"
 fi
 
 if [ -z "$APPENV_PYTHON" ]; then
