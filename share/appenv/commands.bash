@@ -14,20 +14,36 @@
 # === COLORS ==================================================================
 
 # SEE: http://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
-GREEN='\033[38;5;196m'
-GREEN_BOLD='\033[1;38;5;196m'
+if [ -z "${NOCOLOR:-}" ]; then
+	GREEN='\033[38;5;196m'
+	GREEN_BOLD='\033[1;38;5;196m'
 
-GREEN='\033[38;5;82m'
-GREEN_BOLD='\033[1;38;5;82m'
+	GREEN='\033[38;5;82m'
+	GREEN_BOLD='\033[1;38;5;82m'
 
-YELLOW='\033[38;5;220m'
-YELLOW_BOLD='\033[1;38;5;220m'
+	YELLOW='\033[38;5;220m'
+	YELLOW_BOLD='\033[1;38;5;220m'
 
-BLUE='\033[38;5;45m'
-BLUE_BOLD='\033[1;38;5;45m'
+	BLUE='\033[38;5;45m'
+	BLUE_BOLD='\033[1;38;5;45m'
 
-NORMAL='\033[0m' # No Color
-NC="$NORMAL"
+	RED='\033[38;5;160m'
+	RED_BOLD='\033[1;38;5;160m'
+
+	NORMAL='\033[0m' # No Color
+	NC="$NORMAL"
+else
+	GREEN=''
+	GREEN_BOLD=''
+	YELLOW=''
+	YELLOW_BOLD=''
+	BLUE=''
+	BLUE_BOLD=''
+	RED=''
+	RED_BOLD=''
+	NORMAL=''
+	NC=''
+fi
 
 # === PATHS ==================================================================
 
@@ -40,15 +56,15 @@ APPENV_BASE=$(readlink -f "$(dirname "${BASH_SOURCE[0]}")")
 # -----------------------------------------------------------------------------
 
 function _appenv_error {
-	>&2 echo -e "${RED}[!] ${RED_BOLD}${@}${NC}"
+	>&2 echo -e "${RED}[!] ${RED_BOLD}${*}${NC}"
 }
 
 function _appenv_log {
-	echo -e "${YELLOW}${@}${NC}"
+	echo -e "${YELLOW}${*}${NC}"
 }
 
 function _appenv_out {
-	echo -e "${@}${NC}"
+	echo -e "${*}${NC}"
 }
 
 function _appenv_output {
@@ -85,7 +101,7 @@ function _appenv_output {
 
 function _appenv_locate {
 	local APP
-	local NAME=$1
+	local NAME=${1:-}
 	if [ -z "$NAME" ]; then
 		# Name is empty, so we're looking for an .appenv
 		# file
@@ -108,7 +124,7 @@ function _appenv_locate {
 		# and grep the ones that match the given name.
 		local FOUND=false
 		for APP in $(_appenv_list); do
-			if [ -n "$(_appenv_names $APP | xargs -n1 echo | grep -e \"^$NAME$\")" ]; then
+			if [ -n "$(_appenv_names $APP | xargs -n1 echo | grep -e "^$NAME$")" ]; then
 				echo "$APP"
 				FOUND=true
 				break
@@ -121,17 +137,17 @@ function _appenv_locate {
 }
 
 function _appenv_list {
-	local APP=0
-	local DIR=$1
+	local DIR=${1:-}
 	if [ -z "$DIR" ]; then
 		DIR=$(pwd)
 	fi
 	local PARENT
 	PARENT=$(dirname "$(readlink -f "$DIR")")
 	if [ -d "$DIR"/.appenv ]; then
-		for APP in "$DIR"/.appenv/*.appenv.sh; do
-			if [ -e "$APP" ]; then
-				echo "$APP"
+		local app
+		for app in "$DIR"/.appenv/*.appenv.sh; do
+			if [ -e "$app" ]; then
+				echo "$app"
 			fi
 		done
 	elif [ -f "$DIR"/.appenv ]; then
@@ -148,7 +164,7 @@ function _appenv_name {
 
 function _appenv_names {
 	local FILE=$(_appenv_locate "$1")
-	local NAME
+	local NAME=""
 	if [ -e "$FILE" ]; then
 		NAME=$(grep appenv_name <"$FILE" | awk '{print $2}')
 	fi
@@ -198,7 +214,7 @@ function _appenv_load {
 }
 
 function _appenv_resolve {
-	local name=$1
+	local name=${1:-}
 	# If it's a full path in APPENV_LOADED, return it
 	if echo "$APPENV_LOADED" | tr ':' '\n' | grep -Fxq "$name"; then
 		echo "$name"
@@ -209,7 +225,7 @@ function _appenv_resolve {
 }
 
 function _appenv_unload {
-	local target=$1
+	local target=${1:-}
 	local file_path
 
 	# Resolve target
@@ -258,12 +274,12 @@ function _appenv_unload {
 		case "$op" in
 			PREPEND)
 				# Remove value from start with separator
-				local current=$(printenv "$name")
+				local current=$(printenv "$name" || true)
 				export "$name"="${current#$value:}"
 				;;
 			APPEND)
 				# Remove value from end with separator
-				local current=$(printenv "$name")
+				local current=$(printenv "$name" || true)
 				export "$name"="${current%:$value}"
 				;;
 			SET|DECLARE)
@@ -331,7 +347,7 @@ function _appenv_loaded {
 ##      file so that relative paths will be resolved.
 ##   :
 function _appenv_source {
-	local FILE_PATH="$1"
+	local FILE_PATH="${1:-}"
 	if [ ! -e "$FILE_PATH" ]; then
 		_appenv_error: "_appenv_source: Given file does not exists '$FILE_PATH'"
 	else

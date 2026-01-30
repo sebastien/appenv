@@ -31,29 +31,29 @@ source "$APPENV_LIB"/commands.bash
 # TODO: This is the user-facing API and should then be documented properly
 
 function _appenv_log_op {
-	local op=$1
-	local name=$2
-	local value=$3
-	local file_hash=$(echo "$APPENV_FILE" | sha256sum | cut -d' ' -f1 | head -c16)
+	local op=${1:-}
+	local name=${2:-}
+	local value=${3:-}
+	local file_hash=$(echo "${APPENV_FILE:-}" | sha256sum | cut -d' ' -f1 | head -c16)
 	local backup_var="APPENV_BACKUP_${file_hash}"
 
 	local entry=$(echo -n "${op}:${name}:${value}" | base64 -w0)
 
-	if [ -z "${!backup_var}" ]; then
+	if [ -z "${!backup_var:-}" ]; then
 		export "$backup_var"="${entry}"
 	else
-		export "$backup_var"="${!backup_var},${entry}"
+		export "$backup_var"="${!backup_var:-},${entry}"
 	fi
 }
 
 function appenv_declare {
 	local NAME=${1//[-]/_}
-	local VALUE=$2
+	local VALUE=${2:-}
 	local CURRENT
-	CURRENT=$(printenv "$1")
+	CURRENT=$(printenv "$1" || true)
 	export APPENV_POST=""
 	if [ -z "$VALUE" ]; then
-		VALUE="$APPENV_FILE"
+		VALUE="${APPENV_FILE:-}"
 	fi
 	if [ "$VALUE" != "$CURRENT" ]; then
 		export "${NAME}"="${VALUE}"
@@ -61,19 +61,19 @@ function appenv_declare {
 		_appenv_log_op "DECLARE" "$NAME" "$CURRENT"
 	else
 		_appenv_log "appenv: ${YELLOW_BOLD}$NAME${YELLOW} is already declared"
-		exit
+		exit 1
 	fi
 }
 
 function appenv_append {
-	local NAME=$1
-	local VALUE=$2
-	local SEP=$3
+	local NAME=${1:-}
+	local VALUE=${2:-}
+	local SEP=${3:-}
 	if [ -z "$SEP" ]; then
 		SEP=":"
 	fi
 	local CURRENT
-	CURRENT=$(printenv "$1")
+	CURRENT=$(printenv "$1" || true)
 	# "Compatible answer"
 	if [ -z "$CURRENT" ]; then
 		export "${NAME}"="${VALUE}"
@@ -85,10 +85,10 @@ function appenv_append {
 }
 
 function appenv_prepend {
-	local NAME=$1
-	local VALUE=$2
+	local NAME=${1:-}
+	local VALUE=${2:-}
 	local CURRENT
-	CURRENT=$(printenv "$1")
+	CURRENT=$(printenv "$1" || true)
 	if [ -z "$CURRENT" ]; then
 		export "${NAME}"="${VALUE}"
 		_appenv_log_op "PREPEND" "$NAME" "$VALUE"
@@ -99,10 +99,10 @@ function appenv_prepend {
 }
 
 function appenv_remove {
-	local NAME=$1
-	local VALUE=$2
+	local NAME=${1:-}
+	local VALUE=${2:-}
 	local CURRENT
-	CURRENT=$(printenv "$1")
+	CURRENT=$(printenv "$1" || true)
 	local UPDATED="${CURRENT//$VALUE/}"
 	if [ "$UPDATED" != "$CURRENT" ]; then
 		export "${NAME}"="${UPDATED}"
@@ -110,16 +110,17 @@ function appenv_remove {
 }
 
 function appenv_set {
-	local NAME=$1
-	local VALUE=$2
-	local PREVIOUS=$(printenv "$NAME")
+	local NAME=${1:-}
+	local VALUE=${2:-}
+	local PREVIOUS=$(printenv "$NAME" || true)
 	export "${NAME}"="${VALUE}"
 	_appenv_log_op "SET" "$NAME" "$PREVIOUS"
 }
 
 function appenv_clear {
-	local PREVIOUS=$(printenv "$1")
-	export "$1"=
+	local target=${1:-}
+	local PREVIOUS=$(printenv "$target" || true)
+	export "$target"=
 	_appenv_log_op "CLEAR" "$1" "$PREVIOUS"
 }
 
@@ -128,18 +129,18 @@ function appenv_log {
 }
 
 function appenv_error {
-	>&2 echo -e "${@}"
+	>&2 echo -e "${*}"
 }
 
 function appenv_name {
-	appenv_append APPENV_STATUS "$1"
+	appenv_append APPENV_STATUS "${1:-}"
 }
 
 function appenv_module {
 	local NAME
-	NAME=$(echo "$1" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
+	NAME=$(echo "${1:-}" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
 	appenv_name "$1"
-	appenv_declare "$NAME" "$2"
+	appenv_declare "$NAME" "${2:-}"
 }
 
 function appenv_load {
