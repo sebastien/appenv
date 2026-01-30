@@ -16,11 +16,11 @@
 
 # === REQUIREMENTS ===========================================================
 
-if [ ! -z `which python` ]; then
+if [ ! -z $(which python) ]; then
 	APPENV_PYTHON="python"
-elif [ ! -z `which python3` ]; then
+elif [ ! -z $(which python3) ]; then
 	APPENV_PYTHON="python3"
-elif [ ! -z "$PYTHON"]; then
+elif [ ! -z "$PYTHON" ]; then
 	APPENV_PYTHON="$PYTHON"
 else
 	APPENV_PYTHON="python"
@@ -36,7 +36,7 @@ APPENV_BASE=$(readlink -f "$(dirname "${BASH_SOURCE[0]}")")
 if [ -z "$APPENV_LIB" ]; then
 	APPENV_LIB="$APPENV_BASE"/../share/appenv
 fi
-APPENV_SHELL=$(which bash 2> /dev/null)
+APPENV_SHELL=$(which bash 2>/dev/null)
 
 # === API =====================================================================
 # Sets the given environment variable to the given value
@@ -48,7 +48,7 @@ source "$APPENV_LIB/commands.bash"
 function _appenv_set {
 	NAME=$1
 	VALUE=$2
-	PREVIOUS=$2
+	PREVIOUS=$3
 	eval "export ${NAME}=\"${VALUE}\""
 }
 
@@ -72,6 +72,10 @@ function appenv-name {
 
 function appenv-declares {
 	_appenv_declares "$@"
+}
+
+function appenv-unload {
+	_appenv_unload "$@"
 }
 
 # === MAIN ====================================================================
@@ -126,6 +130,5 @@ function appenv {
 		done
 	fi
 }
-
 
 # EOF

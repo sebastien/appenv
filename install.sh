@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 PREFIX=~/.local
-FILES="bin/appenv.bash bin/appenv.fish share/appenv/api.bash share/appenv/commands.bash share/appenv/run.bash share/appenv/merge.bash"
+FILES="bin/appenv.bash share/appenv/api.bash share/appenv/commands.bash share/appenv/run.bash share/appenv/merge.bash"
 BASE="https://raw.githubusercontent.com/sebastien/appenv/master"
 METHOD="copy"
 
@@ -42,5 +42,4 @@ for FILE in $FILES; do
 	fi
 done
 chmod +x "$PREFIX/bin/appenv.bash"
-chmod +x "$PREFIX/bin/appenv.fish"
 # EOF

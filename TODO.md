@@ -12,5 +12,5 @@
   - [ ] Support naming of appenvs and automatic unloading of them
   - [ ] Try to implement the core commands in bash so that they're
     shell-agnostic and don't need to be reimplemented for each shell.
-  - \[ \] Move appenv.{bash,fish} to share/appenv
+  - [ ] Move appenv.bash to share/appenv
   - [ ] Move share/appenv to lib/appenv

@@ -30,18 +30,35 @@ source "$APPENV_LIB"/commands.bash
 
 # TODO: This is the user-facing API and should then be documented properly
 
+function _appenv_log_op {
+	local op=$1
+	local name=$2
+	local value=$3
+	local file_hash=$(echo "$APPENV_FILE" | sha256sum | cut -d' ' -f1 | head -c16)
+	local backup_var="APPENV_BACKUP_${file_hash}"
+
+	local entry=$(echo -n "${op}:${name}:${value}" | base64 -w0)
+
+	if [ -z "${!backup_var}" ]; then
+		export "$backup_var"="${entry}"
+	else
+		export "$backup_var"="${!backup_var},${entry}"
+	fi
+}
+
 function appenv_declare {
 	local NAME=${1//[-]/_}
 	local VALUE=$2
 	local CURRENT
 	CURRENT=$(printenv "$1")
 	export APPENV_POST=""
-	if [ -z "$VALUE" ] ; then
+	if [ -z "$VALUE" ]; then
 		VALUE="$APPENV_FILE"
 	fi
 	if [ "$VALUE" != "$CURRENT" ]; then
-	 	export "${NAME}"="${VALUE}"
+		export "${NAME}"="${VALUE}"
 		appenv_name "$1"
+		_appenv_log_op "DECLARE" "$NAME" "$CURRENT"
 	else
 		_appenv_log "appenv: ${YELLOW_BOLD}$NAME${YELLOW} is already declared"
 		exit
@@ -60,8 +77,10 @@ function appenv_append {
 	# "Compatible answer"
 	if [ -z "$CURRENT" ]; then
 		export "${NAME}"="${VALUE}"
-	elif [ -n "${CURRENT##*$VALUE*}" ] ;then
+		_appenv_log_op "APPEND" "$NAME" "$VALUE"
+	elif [ -n "${CURRENT##*$VALUE*}" ]; then
 		export "${NAME}=${CURRENT}${SEP}${VALUE}"
+		_appenv_log_op "APPEND" "$NAME" "$VALUE"
 	fi
 }
 
@@ -72,8 +91,10 @@ function appenv_prepend {
 	CURRENT=$(printenv "$1")
 	if [ -z "$CURRENT" ]; then
 		export "${NAME}"="${VALUE}"
-	elif [ -n "${CURRENT##*$VALUE*}" ] ;then
+		_appenv_log_op "PREPEND" "$NAME" "$VALUE"
+	elif [ -n "${CURRENT##*$VALUE*}" ]; then
 		export "${NAME}=${VALUE}:${CURRENT}"
+		_appenv_log_op "PREPEND" "$NAME" "$VALUE"
 	fi
 }
 
@@ -84,18 +105,22 @@ function appenv_remove {
 	CURRENT=$(printenv "$1")
 	local UPDATED="${CURRENT//$VALUE/}"
 	if [ "$UPDATED" != "$CURRENT" ]; then
-	 	export "${NAME}"="${UPDATED}"
+		export "${NAME}"="${UPDATED}"
 	fi
 }
 
 function appenv_set {
 	local NAME=$1
 	local VALUE=$2
- 	export "${NAME}"="${VALUE}"
+	local PREVIOUS=$(printenv "$NAME")
+	export "${NAME}"="${VALUE}"
+	_appenv_log_op "SET" "$NAME" "$PREVIOUS"
 }
 
 function appenv_clear {
+	local PREVIOUS=$(printenv "$1")
 	export "$1"=
+	_appenv_log_op "CLEAR" "$1" "$PREVIOUS"
 }
 
 function appenv_log {
@@ -113,7 +138,7 @@ function appenv_name {
 function appenv_module {
 	local NAME
 	NAME=$(echo "$1" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
-	appenv_name    "$1"
+	appenv_name "$1"
 	appenv_declare "$NAME" "$2"
 }
 

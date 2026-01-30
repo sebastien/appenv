@@ -10,7 +10,7 @@
 #
 # -----------------------------------------------------------------------------
 
-APPENV_BASE=`readlink -f \`dirname ${BASH_SOURCE[0]}\``
+APPENV_BASE=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
 source $APPENV_BASE/commands.bash
 eval "_appenv_$@"
 

@@ -55,12 +55,12 @@ function _appenv_output {
 	local OUT
 	local ERR
 	if [ -e "$1" ]; then
-		OUT=`cat $1`
+		OUT=$(cat $1)
 	else
 		OUT=""
 	fi
 	if [ -e "$2" ]; then
-		ERR=`cat $2`
+		ERR=$(cat $2)
 	else
 		ERR=""
 	fi
@@ -108,7 +108,7 @@ function _appenv_locate {
 		# and grep the ones that match the given name.
 		local FOUND=false
 		for APP in $(_appenv_list); do
-			if [ -n "`_appenv_names $APP | xargs -n1 echo | grep -e \"^$NAME$\"`" ]; then
+			if [ -n "$(_appenv_names $APP | xargs -n1 echo | grep -e \"^$NAME$\")" ]; then
 				echo "$APP"
 				FOUND=true
 				break
@@ -142,7 +142,6 @@ function _appenv_list {
 	fi
 }
 
-
 function _appenv_name {
 	_appenv_names "$1"
 }
@@ -151,7 +150,7 @@ function _appenv_names {
 	local FILE=$(_appenv_locate "$1")
 	local NAME
 	if [ -e "$FILE" ]; then
-		NAME=$(grep appenv_name < "$FILE" | awk '{print $2}')
+		NAME=$(grep appenv_name <"$FILE" | awk '{print $2}')
 	fi
 	if [ -n "$NAME" ]; then
 		echo "$NAME"
@@ -165,9 +164,9 @@ function _appenv_names {
 function _appenv_declares {
 	local NAME
 	if [ -f "$1" ]; then
-		for NAME in `cat $1 | grep appenv_declare | awk '{print $2}'`; do
+		for NAME in $(cat $1 | grep appenv_declare | awk '{print $2}'); do
 			if [ -z "$NAME" ]; then
-				NAMES=`basename $1 | cut -d. -f1`
+				NAMES=$(basename $1 | cut -d. -f1)
 			fi
 			echo "$NAME"
 		done
@@ -198,8 +197,121 @@ function _appenv_load {
 	fi
 }
 
+function _appenv_resolve {
+	local name=$1
+	# If it's a full path in APPENV_LOADED, return it
+	if echo "$APPENV_LOADED" | tr ':' '\n' | grep -Fxq "$name"; then
+		echo "$name"
+		return 0
+	fi
+	# Otherwise try to locate by name
+	_appenv_locate "$name"
+}
+
 function _appenv_unload {
-	_appenv_error "appenv_unload: Not implemented yet"
+	local target=$1
+	local file_path
+
+	# Resolve target
+	if [ -z "$target" ]; then
+		# Unload last loaded
+		file_path=$(echo "$APPENV_LOADED" | tr ':' '\n' | tail -1)
+	else
+		file_path=$(_appenv_resolve "$target")
+	fi
+
+	if [ -z "$file_path" ]; then
+		_appenv_error "Cannot find appenv to unload: ${target:-last loaded}"
+		return 1
+	fi
+
+	# Verify it's actually loaded
+	if ! echo "$APPENV_LOADED" | tr ':' '\n' | grep -Fxq "$file_path"; then
+		_appenv_error "Appenv not currently loaded: $file_path"
+		return 1
+	fi
+
+	local file_hash=$(echo "$file_path" | sha256sum | cut -d' ' -f1 | head -c16)
+	local backup_var="APPENV_BACKUP_${file_hash}"
+	local backup="${!backup_var}"
+
+	if [ -z "$backup" ]; then
+		_appenv_error "No backup found for: $file_path"
+		return 1
+	fi
+
+	# Parse and reverse operations (process in reverse order)
+	local IFS=','
+	local entries=($backup)
+	unset IFS
+
+	local i=${#entries[@]}
+	while [ $i -gt 0 ]; do
+		i=$((i - 1))
+		local entry="${entries[$i]}"
+		local decoded=$(echo "$entry" | base64 -d)
+
+		local op=$(echo "$decoded" | cut -d: -f1)
+		local name=$(echo "$decoded" | cut -d: -f2)
+		local value=$(echo "$decoded" | cut -d: -f3-)
+
+		case "$op" in
+			PREPEND)
+				# Remove value from start with separator
+				local current=$(printenv "$name")
+				export "$name"="${current#$value:}"
+				;;
+			APPEND)
+				# Remove value from end with separator
+				local current=$(printenv "$name")
+				export "$name"="${current%:$value}"
+				;;
+			SET|DECLARE)
+				# Restore previous value (stored in value field)
+				if [ -z "$value" ]; then
+					unset "$name"
+				else
+					export "$name"="$value"
+				fi
+				# Check if this affects other loaded scripts
+				local warn_scripts=""
+				for loaded in $(echo "$APPENV_LOADED" | tr ':' '\n'); do
+					if [ "$loaded" != "$file_path" ]; then
+						local loaded_hash=$(echo "$loaded" | sha256sum | cut -d' ' -f1 | head -c16)
+						local loaded_backup_var="APPENV_BACKUP_${loaded_hash}"
+						local loaded_backup="${!loaded_backup_var}"
+						if [ -n "$loaded_backup" ]; then
+							local decoded_loaded=$(echo "$loaded_backup" | base64 -d 2>/dev/null)
+							if echo "$decoded_loaded" | grep -q ":${name}:"; then
+								warn_scripts="${warn_scripts:+$warn_scripts, }$(_appenv_name "$loaded")"
+							fi
+						fi
+					fi
+				done
+				if [ -n "$warn_scripts" ]; then
+					_appenv_log "Warning: Unloading $name may affect changes from: $warn_scripts"
+				fi
+				;;
+			CLEAR)
+				# Restore previous value
+				export "$name"="$value"
+				;;
+		esac
+	done
+
+	# Remove from APPENV_LOADED
+	local new_loaded=$(echo "$APPENV_LOADED" | tr ':' '\n' | grep -vxF "$file_path" | tr '\n' ':' | sed 's/:$//')
+	export APPENV_LOADED="$new_loaded"
+
+	# Remove from APPENV_STATUS
+	local name=$(_appenv_name "$file_path")
+	local new_status=$(echo "$APPENV_STATUS" | tr ':' '\n' | grep -vxF "$name" | tr '\n' ':' | sed 's/:$//')
+	export APPENV_STATUS="$new_status"
+
+	# Clean up backup variable
+	unset "$backup_var"
+
+	_appenv_log "Unloaded: $name ($file_path)"
 }
 
 function _appenv_loaded {
@@ -255,7 +367,7 @@ function _appenv_source {
 # -----------------------------------------------------------------------------
 
 function _appenv_capture {
-	"$APPENV_PYTHON" -c "import os,sys,json;d=(dict((_,os.environ[_]) for _ in sorted(os.environ) if not _.startswith('BASH_') and not _.startswith('fish_') and not _.startswith('_')));sys.stdout.write(json.dumps(d))"
+	"$APPENV_PYTHON" -c "import os,sys,json;d=(dict((_,os.environ[_]) for _ in sorted(os.environ) if not _.startswith('BASH_') and not _.startswith('_')));sys.stdout.write(json.dumps(d))"
 }
 
 # --
@@ -266,7 +378,7 @@ function _appenv_capture {
 # _appenv_set "SHLVL" "0" "1";
 # ```
 function _appenv_diff {
-	echo "$1" | "$APPENV_PYTHON" -c "import json,sys,os;b=json.load(sys.stdin); d=dict((_,(os.environ[_],b.get(_,''))) for _ in os.environ if not _.startswith('BASH_') and not _.startswith('fish_') and not _.startswith('_') and b.get(_)!=os.environ[_]);[sys.stdout.write('_appenv_set \"{0}\" \"{1}\" \"{2}\";\n'.format(k,v[0],v[1])) for k,v in d.items()]"
+	echo "$1" | "$APPENV_PYTHON" -c "import json,sys,os;b=json.load(sys.stdin); d=dict((_,(os.environ[_],b.get(_,''))) for _ in os.environ if not _.startswith('BASH_') and not _.startswith('_') and b.get(_)!=os.environ[_]);[sys.stdout.write('_appenv_set \"{0}\" \"{1}\" \"{2}\";\n'.format(k,v[0],v[1])) for k,v in d.items()]"
 }
 
 # EOF

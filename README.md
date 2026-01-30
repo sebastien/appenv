@@ -11,14 +11,14 @@ appenv ― per-application & per-directory shell environments
                           \/_/    \/_/
 ```
 
-*appenv* is a shell utility supporting *bash* and *fish* that allows you
+*appenv* is a shell utility supporting *bash* that allows you
 to update your shell environment on a per-application basis. It is similar in spirit
 to tools such as [`autoenv`](https://github.com/kennethreitz/autoenv) or [`direnv`](http://direnv.net/), and offers
 the following features:
 
 - supports per-user (`~/.appenv/`) and per-directory (`.appenv`) environments
 - init-style auto-loading of `~/.appenv/auto-NNN-*.appenv.sh` files
-- easily portable to other shells (fish, zsh, tcsh, xonsh, etc)
+- easily portable to other shells (zsh, tcsh, xonsh, etc)
 - nice API to set/append/prepend values to environment variables
 
 
@@ -93,12 +93,6 @@ To load these commands from your shell, do the following in **bash** (in your `~
 source ~/.local/bin/appenv.bash
 ```
 
-in **fish** (in your `~/.config/fish/config.fish`):
-
-```shell
-. ~/.local/bin/appenv.fish
-```
-
 Usage
 =====
 
@@ -118,7 +112,7 @@ Example:
 └── dev.appenv.sh
 ```
 
-and then do 
+and then do
 
 ```
 appenv dev
@@ -134,7 +128,7 @@ you can load on demand and those loaded automatically.
 appenv-load ~/.appenv/auto-*.appenv.sh
 ```
 
-The `appenv-load` command will be able to resolve `auto-000-name.appenv.sh` 
+The `appenv-load` command will be able to resolve `auto-000-name.appenv.sh`
 from just the `name`.
 
 
@@ -142,7 +136,7 @@ Directory-specific environments
 -------------------------------
 
 Another usage is to create directory-specific environments, in which case
-you would add an `.appenv` file at the root of your project directory and 
+you would add an `.appenv` file at the root of your project directory and
 then add `appenv-autoload` to your prompt in order to automatically load
 the `.appenv` when it is in scope.
 
@@ -186,10 +180,10 @@ Once loaded in you shell, *appenv* offers the following commands:
 	loads the application environment scripts(s) identified by the given
 	*NAME* (resolved in `~/.appenv/<NAME>.appenv.sh`) or *FILE*.
 
-- ~~`appenv-unload FILE‥|NAME‥`~~
+- `appenv-unload FILE‥|NAME‥`
 
 	unloads a preset environment, reverting the changes
-	made by `appenv-load`. 
+	made by `appenv-load`.
 
 	*Not implemented yet*
 
@@ -205,10 +199,10 @@ Once loaded in you shell, *appenv* offers the following commands:
 	declaration with the given `NAME`.
 
 - ~~`appenv-export`~~
-	
+
 	exports the current environment as a script that can be loaded
 	to restore the environment to what it was.
-	
+
 	*Not implemented yet*
 
 - ~~`appenv-import FILE?`~~
@@ -220,7 +214,7 @@ Once loaded in you shell, *appenv* offers the following commands:
 
 
 - ~~`appenv-capture command`~~
-	
+
 	captures the changes made to the environment of the given command,
 	returning the update script in the same format as `appenv-export`.
 
@@ -250,7 +244,7 @@ defined in [share/appenv/api.bash](share/appenv/api.bash):
 
 	exits the script if the environment variable *NAME* is defined (and
 	equal to *VALUE* if specified), effectively guarding the execution of
-	the rest of the script if the variable has already been defined. 
+	the rest of the script if the variable has already been defined.
 
 	```shell
 	appenv_declare MYAPP
@@ -259,9 +253,9 @@ defined in [share/appenv/api.bash](share/appenv/api.bash):
 	‥
 	```
 
-- **appenv_name** *NAME* 
+- **appenv_name** *NAME*
 
-	sets a name for the init script that will be appended to 
+	sets a name for the init script that will be appended to
 	the `APPENV_STATUS` variable.
 
 	*Tip: add `$APPENV_STATUS` to your right prompt and show which
