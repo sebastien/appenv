@@ -67,6 +67,18 @@ function _appenv_out {
 	echo -e "${*}${NC}"
 }
 
+function _appenv_file_key {
+	local file_path=${1:-}
+	echo "$file_path" | sha256sum | cut -d' ' -f1 | head -c16
+}
+
+function _appenv_file_sha {
+	local file_path=${1:-}
+	if [ -f "$file_path" ]; then
+		sha256sum "$file_path" | cut -d' ' -f1
+	fi
+}
+
 function _appenv_output {
 	local OUT
 	local ERR
@@ -247,9 +259,10 @@ function _appenv_unload {
 		return 1
 	fi
 
-	local file_hash=$(echo "$file_path" | sha256sum | cut -d' ' -f1 | head -c16)
+	local file_hash=$(_appenv_file_key "$file_path")
 	local backup_var="APPENV_BACKUP_${file_hash}"
-	local backup="${!backup_var}"
+	local sha_var="APPENV_SHA_${file_hash}"
+	local backup="${!backup_var:-}"
 
 	if [ -z "$backup" ]; then
 		_appenv_error "No backup found for: $file_path"
@@ -293,9 +306,9 @@ function _appenv_unload {
 				local warn_scripts=""
 				for loaded in $(echo "$APPENV_LOADED" | tr ':' '\n'); do
 					if [ "$loaded" != "$file_path" ]; then
-						local loaded_hash=$(echo "$loaded" | sha256sum | cut -d' ' -f1 | head -c16)
+						local loaded_hash=$(_appenv_file_key "$loaded")
 						local loaded_backup_var="APPENV_BACKUP_${loaded_hash}"
-						local loaded_backup="${!loaded_backup_var}"
+						local loaded_backup="${!loaded_backup_var:-}"
 						if [ -n "$loaded_backup" ]; then
 							local decoded_loaded=$(echo "$loaded_backup" | base64 -d 2>/dev/null)
 							if echo "$decoded_loaded" | grep -q ":${name}:"; then
@@ -326,6 +339,7 @@ function _appenv_unload {
 
 	# Clean up backup variable
 	unset "$backup_var"
+	unset "$sha_var"
 
 	_appenv_log "Unloaded: $name ($file_path)"
 }

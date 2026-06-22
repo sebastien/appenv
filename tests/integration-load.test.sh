@@ -145,4 +145,24 @@ else
 	test-fail "Expected POST_TEST_MARKER=executed, got: '${POST_TEST_MARKER:-}'"
 fi
 
+# --- Test 9: APPENV_POST survives appenv_declare ------------------------------
+test-step "APPENV_POST survives appenv_declare"
+export POST_DECLARE_MARKER=""
+unset APPENV_POST 2>/dev/null || true
+cat > "$TEST_APPENV_DIR/post-declare.appenv.sh" << 'EOF'
+appenv_post 'export POST_DECLARE_MARKER="executed"'
+appenv_declare POST_DECLARE_ENV
+EOF
+export APPENV_FILE="$TEST_APPENV_DIR/post-declare.appenv.sh"
+export APPENV_DIR="$TEST_APPENV_DIR"
+source "$TEST_APPENV_DIR/post-declare.appenv.sh"
+if [ -n "${APPENV_POST:-}" ]; then
+	eval "$APPENV_POST"
+fi
+if [ "${POST_DECLARE_MARKER:-}" = "executed" ]; then
+	test-ok "APPENV_POST persisted across appenv_declare"
+else
+	test-fail "Expected POST_DECLARE_MARKER=executed, got: '${POST_DECLARE_MARKER:-}'"
+fi
+
 test-end

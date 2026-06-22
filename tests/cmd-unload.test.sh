@@ -124,7 +124,7 @@ fi
 
 # --- Test 6: Unload error when not loaded ------------------------------------
 test-step "Unload reports error when environment not loaded"
-result=$(_appenv_unload "nonexistent" 2>&1)
+result=$(_appenv_unload "nonexistent" 2>&1 || true)
 if echo "$result" | grep -qi "cannot find\|error\|not loaded"; then
 	test-ok "Error reported for not-loaded environment"
 else
@@ -135,7 +135,7 @@ fi
 test-step "Unload reports error when no backup exists"
 unset TEST_VAR 2>/dev/null || true
 export APPENV_LOADED="/fake/path.appenv.sh"
-result=$(_appenv_unload "/fake/path.appenv.sh" 2>&1)
+result=$(_appenv_unload "/fake/path.appenv.sh" 2>&1 || true)
 if echo "$result" | grep -qi "no backup\|error"; then
 	test-ok "Error reported for missing backup"
 else

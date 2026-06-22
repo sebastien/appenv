@@ -34,7 +34,7 @@ function _appenv_log_op {
 	local op=${1:-}
 	local name=${2:-}
 	local value=${3:-}
-	local file_hash=$(echo "${APPENV_FILE:-}" | sha256sum | cut -d' ' -f1 | head -c16)
+	local file_hash=$(_appenv_file_key "${APPENV_FILE:-}")
 	local backup_var="APPENV_BACKUP_${file_hash}"
 
 	local entry=$(echo -n "${op}:${name}:${value}" | base64 -w0)
@@ -51,7 +51,6 @@ function appenv_declare {
 	local VALUE=${2:-}
 	local CURRENT
 	CURRENT=$(printenv "$1" || true)
-	export APPENV_POST=""
 	if [ -z "$VALUE" ]; then
 		VALUE="${APPENV_FILE:-}"
 	fi

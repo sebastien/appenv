@@ -33,7 +33,7 @@ fi
 # === GLOBALS =================================================================
 
 APPENV_BASE=$(readlink -f "$(dirname "${BASH_SOURCE[0]}")")
-if [ -z "$APPENV_LIB" ]; then
+if [ -z "${APPENV_LIB:-}" ]; then
 	APPENV_LIB="$APPENV_BASE"/../share/appenv
 fi
 APPENV_SHELL=$(which bash 2>/dev/null)
@@ -82,6 +82,7 @@ function appenv-unload {
 
 function appenv-load {
 	local SCRIPT
+	local FILE_PATH=""
 	if [ -z "$1" ]; then
 		SCRIPT=$(cat /dev/stdin | "$APPENV_LIB"/merge.bash)
 	else
@@ -89,15 +90,26 @@ function appenv-load {
 		if [ -z "$FILE_PATH" ]; then
 			_appenv_error "appenv-load[bash]: Cannot locate an appenv file like: $1"
 		elif [ -e "$FILE_PATH" ]; then
+			FILE_PATH=$(readlink -f "$FILE_PATH")
+			local file_key=$(_appenv_file_key "$FILE_PATH")
+			local sha_var="APPENV_SHA_${file_key}"
+			if echo "${APPENV_LOADED:-}" | tr ':' '\n' | grep -Fxq "$FILE_PATH"; then
+				_appenv_unload "$FILE_PATH" || return 1
+			fi
 			SCRIPT=$(. "$APPENV_LIB"/merge.bash "$FILE_PATH")
 		else
 			_appenv_error "_appenv-load[bash]: Could not resolve file $1 to $FILE_PATH"
 		fi
 	fi
 	eval "${SCRIPT}"
-	if [ -n "$APPENV_POST" ]; then
+	if [ -n "${APPENV_POST:-}" ]; then
 		eval "$APPENV_POST"
 		unset APPENV_POST
+	fi
+	if [ -n "$FILE_PATH" ] && [ -f "$FILE_PATH" ]; then
+		local file_key=$(_appenv_file_key "$FILE_PATH")
+		local sha_var="APPENV_SHA_${file_key}"
+		export "$sha_var"="$(_appenv_file_sha "$FILE_PATH")"
 	fi
 
 }
